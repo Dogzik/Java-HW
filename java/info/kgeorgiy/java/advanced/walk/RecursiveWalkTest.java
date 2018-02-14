@@ -6,8 +6,10 @@ import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
@@ -18,6 +20,21 @@ public class RecursiveWalkTest extends WalkTest {
     public void test15_singleRecursion() throws IOException {
         final Path root = DIR.resolve(name.getMethodName());
         test(Collections.singletonList(root.toString()), randomDirs(3, 4, 100, root));
+    }
+
+    @Test
+    public void test16_doubleRecursion() throws IOException {
+        final Path root = DIR.resolve(name.getMethodName());
+        final Path dir1 = root.resolve(randomFileName());
+        final Path dir2 = root.resolve(randomFileName());
+        final String from = dir1.toString();
+        final String to = dir2.resolve("..").resolve(dir1.getFileName()).toString();
+
+        final Map<String, Integer> files = randomDirs(3, 4, 100, dir1);
+        files.putAll(files.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().replace(from, to), Map.Entry::getValue)));
+        files.putAll(randomDirs(3, 4, 100, dir2));
+
+        test(Arrays.asList(from, dir2.toString(), to), files);
     }
 
     private Map<String, Integer> randomDirs(final int n, final int d, final int maxL, final Path dir) throws IOException {

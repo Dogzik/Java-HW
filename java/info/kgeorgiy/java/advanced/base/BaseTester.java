@@ -6,7 +6,6 @@ import org.junit.runner.notification.Failure;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)

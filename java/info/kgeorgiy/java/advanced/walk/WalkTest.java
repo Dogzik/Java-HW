@@ -18,10 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
@@ -75,6 +72,58 @@ public class WalkTest extends BaseTest {
     @Test
     public void test07_largeRandomFiles() throws IOException {
         test(randomFiles(10, 1_000_000));
+    }
+
+    @Test
+    public void test08_chineseSupport() throws IOException {
+        final String alphabet = ALPHABET;
+        ALPHABET = "\u8acb\u554f\u4f60\u7684\u7a0b\u5e8f\u652f\u6301\u4e2d\u570b";
+        test(randomFiles(10, 100));
+        ALPHABET = alphabet;
+    }
+
+    @Test
+    public void test09_noInput() {
+        runRaw(randomFileName(), randomFileName());
+    }
+
+    @Test
+    public void test10_invalidInput() {
+        runRaw("/", randomFileName());
+        runRaw("\0*", randomFileName());
+    }
+
+    @Test
+    public void test11_invalidOutput() throws IOException {
+        final String input = createEmptyFile(name.getMethodName());
+        runRaw(input, "/");
+        runRaw(input, "\0*");
+        final String file = createEmptyFile(name.getMethodName());
+        runRaw(input, file + "/" + randomFileName());
+    }
+
+    @Test
+    public void test12_singleArgument() throws IOException {
+        runRaw(createEmptyFile(name.getMethodName()));
+    }
+
+    @Test
+    public void test13_veryLargeFile() throws IOException {
+        test(randomFiles(1, 100_000_00));
+    }
+
+    @Test
+    public void test14_invalidFiles() throws IOException {
+        final String alphabet = ALPHABET;
+        ALPHABET = "\0\\*";
+        test(randomFiles(1, 10));
+        ALPHABET = alphabet;
+    }
+
+    private String createEmptyFile(final String name) throws IOException {
+        final Path input = DIR.resolve(name);
+        Files.write(input, new byte[0]);
+        return input.toString();
     }
 
     protected void test(final Map<String, Integer> files) {
