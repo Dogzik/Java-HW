@@ -6,11 +6,11 @@
 Для того, чтобы протестировать программу:
 
  * Скачайте тесты ([WalkTest.jar](artifacts/WalkTest.jar)) и библиотеки к ним:
-    [junit-4.11.jar](lib/junit-4.11.jar) [hamcrest-core-1.3.jar](lib/hamcrest-core-1.3.jar)
+    [junit-4.11.jar](lib/junit-4.11.jar), [hamcrest-core-1.3.jar](lib/hamcrest-core-1.3.jar)
  * Откомпилируйте решение домашнего задания
  * Запуск простого варианта
 
-		info.kgeorgiy.java.advanced.walk.Tester Walk <полное имя класса>
+        info.kgeorgiy.java.advanced.walk.Tester Walk <полное имя класса>
 
  * Запуск сложного варианта
 
