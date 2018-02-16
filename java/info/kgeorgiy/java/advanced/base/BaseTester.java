@@ -43,7 +43,7 @@ public class BaseTester {
 
     protected void certify(final Class<?> token, final String salt) {
         try {
-            final CG cg = (CG) Class.forName("info.kgeorgiy.java.advanced.base.CertificateGenerator").newInstance();
+            final CG cg = (CG) Class.forName("info.kgeorgiy.java.advanced.base.CertificateGenerator").getDeclaredConstructor().newInstance();
             cg.certify(token, salt);
         } catch (final ClassNotFoundException e) {
             // Ignore

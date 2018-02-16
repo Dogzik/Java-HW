@@ -8,6 +8,7 @@ import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -30,9 +31,11 @@ public class BaseTest {
     @SuppressWarnings("unchecked")
     public static <T> T createCUT() {
         try {
-            return (T) loadClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return (T) loadClass().getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException e) {
             throw new AssertionError(e);
+        } catch (final InvocationTargetException e) {
+            throw new AssertionError(e.getCause());
         }
     }
 
