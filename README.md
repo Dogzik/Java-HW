@@ -1,6 +1,23 @@
 Тесты к курсу «Технологии Java»
 ====
 
+Домашнее задание 2. ArraySortedSet
+----
+
+* Протестировать сложную версию задания:
+
+        info.kgeorgiy.java.advanced.arrayset.Tester NavigableSet <полное имя класса>
+
+* Протестировать простую версию задания:
+
+        info.kgeorgiy.java.advanced.arrayset.Tester SortedSet <полное имя класса>
+
+Исходный код тестов:
+
+* [Простой вариант](java/info/kgeorgiy/java/advanced/arrayset/SortedSetTest.java)
+* [Сложный вариант](java/info/kgeorgiy/java/advanced/arrayset/NavigableSetTest.java)
+
+
 Домашнее задание 1. Обход файлов
 ----
 Для того, чтобы протестировать программу:
