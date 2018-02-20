@@ -15,14 +15,16 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
-    private List<T> data;
-    private Comparator<? super T> comparator;
+    private final List<T> data;
+    private final Comparator<? super T> comparator;
 
     public ArraySet() {
+        comparator = null;
         data = Collections.emptyList();
     }
 
     public ArraySet(Collection<? extends T> other) {
+        comparator = null;
         data = new ArrayList<>(new TreeSet<>(other));
     }
 
@@ -34,8 +36,8 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     }
 
     private ArraySet(List<T> arr, Comparator<? super T> cmp) {
-        data = arr;
         comparator = cmp;
+        data = arr;
         if (arr instanceof ReversedList) {
             ((ReversedList) arr).reverse();
         }
@@ -53,7 +55,12 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
 
     @Override
     public boolean contains(Object o) {
-        return (Collections.binarySearch(data, (T) o, comparator) >= 0);
+        try {
+            return Collections.binarySearch(data, (T) Objects.requireNonNull(o), comparator) >= 0;
+        } catch (ClassCastException e) {
+            return false;
+        }
+        //return Collections.binarySearch(data, (T) o, comparator) >= 0;
     }
 
     private T getElem(int ind) {
