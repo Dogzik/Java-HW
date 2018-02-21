@@ -55,12 +55,14 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
 
     @Override
     public boolean contains(Object o) {
+        /*
         try {
-            return Collections.binarySearch(data, (T) Objects.requireNonNull(o), comparator) >= 0;
+            return Collections.binarySearch(data, Objects.requireNonNull(o), comparator) >= 0;
         } catch (ClassCastException e) {
             return false;
         }
-        //return Collections.binarySearch(data, (T) o, comparator) >= 0;
+        */
+        return Collections.binarySearch(data, (T) Objects.requireNonNull(o), comparator) >= 0;
     }
 
     private T getElem(int ind) {
@@ -98,18 +100,20 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
 
     @Override
     public T first() {
-        if (data.isEmpty()) {
-            throw new NoSuchElementException();
-        }
+        checkNonEmpty();
         return data.get(0);
     }
 
     @Override
     public T last() {
+        checkNonEmpty();
+        return data.get(size() - 1);
+    }
+
+    private void checkNonEmpty() {
         if (data.isEmpty()) {
             throw new NoSuchElementException();
         }
-        return data.get(size() - 1);
     }
 
     @Override
@@ -157,7 +161,7 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
         int l = fromInclusive ? ceilingInd(fromElement) : higherInd(fromElement);
         int r = toInclusive ? floorInd(toElement) : lowerInd(toElement);
         if (l == -1 || r == -1 || l > r) {
-            return new ArraySet<>();
+            return Collections.emptyNavigableSet();
         } else {
             return new ArraySet<>(data.subList(l, r + 1), comparator);
         }
@@ -166,7 +170,7 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     @Override
     public NavigableSet<T> headSet(T toElement, boolean inclusive) {
         if (data.isEmpty()) {
-            return new ArraySet<>();
+            return Collections.emptyNavigableSet();
         }
         return subSet(first(), true, toElement, inclusive);
     }
@@ -174,7 +178,7 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     @Override
     public NavigableSet<T> tailSet(T fromElement, boolean inclusive) {
         if (data.isEmpty()) {
-            return new ArraySet<>();
+            return Collections.emptyNavigableSet();
         }
         return subSet(fromElement, inclusive, last(), true);
     }
@@ -197,30 +201,5 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     @Override
     public Comparator<? super T> comparator() {
         return comparator;
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends T> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeIf(Predicate<? super T> filter) {
-        throw new UnsupportedOperationException();
     }
 }
