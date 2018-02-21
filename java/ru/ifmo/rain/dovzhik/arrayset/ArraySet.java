@@ -55,13 +55,6 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
 
     @Override
     public boolean contains(Object o) {
-        /*
-        try {
-            return Collections.binarySearch(data, Objects.requireNonNull(o), comparator) >= 0;
-        } catch (ClassCastException e) {
-            return false;
-        }
-        */
         return Collections.binarySearch(data, (T) Objects.requireNonNull(o), comparator) >= 0;
     }
 
