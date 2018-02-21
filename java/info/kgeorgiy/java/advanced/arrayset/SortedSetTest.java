@@ -129,6 +129,43 @@ public class SortedSetTest extends BaseTest {
         }
     }
 
+    @Test
+    public void test08_containsPerformance() {
+        performance("contains", () -> {
+            final SortedSet<Integer> set = performanceSet(PERFORMANCE_SIZE);
+            for (final Integer element : set) {
+                Assert.assertTrue(null, set.contains(element));
+            }
+        });
+    }
+
+    @Test
+    public void test09_containsAll() {
+        for (final Pair<NamedComparator, List<Integer>> pair : withComparator()) {
+            final List<Integer> elements = pair.getSecond();
+            final Comparator<Integer> comparator = pair.getFirst();
+
+            final SortedSet<Integer> set = set(elements, comparator);
+            final String context = "(comparator = " + comparator + ", elements = " + elements + ")";
+            Assert.assertTrue("set should contains() all elements " + " " + context, set.containsAll(elements));
+
+            final SortedSet<Integer> treeSet = set(elements, comparator);
+            for (final Integer element : someOneOf(excludeValues(integers(), elements))) {
+                final List<Integer> l = new ArrayList<>(elements);
+                elements.add(element);
+                Assert.assertEquals("containsAll(" + l + ") " + context, treeSet.containsAll(l), set.containsAll(l));
+            }
+        }
+    }
+
+    @Test
+    public void test10_containsAllPerformance() {
+        performance("contains", () -> {
+            final SortedSet<Integer> set = performanceSet(PERFORMANCE_SIZE);
+            Assert.assertTrue(null, set.containsAll(new ArrayList<>(set)));
+        });
+    }
+
     private void performance(final String description, final Runnable runnable) {
         runnable.run();
 
@@ -255,6 +292,24 @@ public class SortedSetTest extends BaseTest {
         }
     }
 
+    @Test
+    public void test13_tailSet() {
+        for (final Pair<NamedComparator, List<Integer>> pair : withComparator()) {
+            final List<Integer> elements = pair.getSecond();
+            final Comparator<Integer> comparator = pair.getFirst();
+            final SortedSet<Integer> set = set(elements, comparator);
+            final SortedSet<Integer> treeSet = treeSet(elements, comparator);
+
+            for (final Integer element : inAndOut(elements)) {
+                assertEq(
+                        set.tailSet(element),
+                        treeSet.tailSet(element),
+                        "in tailSet(" + element + ") (comparator = " + comparator + ", elements = " + elements + ")"
+                );
+            }
+        }
+    }
+
     protected Collection<Integer> inAndOut(final List<Integer> elements) {
         return concat(elements, someOneOf(excludeValues(integers(), elements)));
     }
@@ -294,6 +349,16 @@ public class SortedSetTest extends BaseTest {
     }
 
     @Test
+    public void test15_tailSetPerformance() {
+        performance("tailSet", () -> {
+            final SortedSet<Integer> set = performanceSet(PERFORMANCE_SIZE);
+            for (final Integer element : set) {
+                Assert.assertTrue(null, set.tailSet(element).contains(element));
+            }
+        });
+    }
+
+    @Test
     public void test16_first() {
         for (final Pair<NamedComparator, List<Integer>> pair : withComparator()) {
             final List<Integer> elements = pair.getSecond();
@@ -309,6 +374,26 @@ public class SortedSetTest extends BaseTest {
                 }
             } else {
                 Assert.assertEquals("first() " + "(comparator = " + comparator + ", elements = " + elements + ")", set(elements, comparator).first(), set.first());
+            }
+        }
+    }
+
+    @Test
+    public void test17_last() {
+        for (final Pair<NamedComparator, List<Integer>> pair : withComparator()) {
+            final List<Integer> elements = pair.getSecond();
+            final Comparator<Integer> comparator = pair.getFirst();
+
+            final SortedSet<Integer> set = set(elements, comparator);
+            if (set.isEmpty()) {
+                try {
+                    set.last();
+                    Assert.fail("last() should throw NoSuchElementException for empty set");
+                } catch (final NoSuchElementException e) {
+                    // ok
+                }
+            } else {
+                Assert.assertEquals("last() " + "(comparator = " + comparator + ", elements = " + elements + ")", set(elements, comparator).last(), set.last());
             }
         }
     }
