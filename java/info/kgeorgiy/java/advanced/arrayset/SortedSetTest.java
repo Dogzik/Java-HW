@@ -89,23 +89,23 @@ public class SortedSetTest extends BaseTest {
     @Test
     public void test06_immutable() {
         final SortedSet<Integer> set = set(Collections.singletonList(1));
-        checkUnsupported(() -> set.add(1));
-        checkUnsupported(() -> set.addAll(Collections.singletonList(1)));
-        checkUnsupported(set::clear);
-        checkUnsupported(() -> {
+        checkUnsupported("add", () -> set.add(1));
+        checkUnsupported("addAll", () -> set.addAll(Collections.singletonList(1)));
+        checkUnsupported("clear", set::clear);
+        checkUnsupported("iterator.remove", () -> {
             final Iterator<Integer> iterator = set.iterator();
             iterator.next();
             iterator.remove();
         });
-        checkUnsupported(() -> set.remove(1));
-        checkUnsupported(() -> set.removeAll(Collections.singletonList(1)));
-        checkUnsupported(() -> set.retainAll(Collections.singletonList(0)));
+        checkUnsupported("remove", () -> set.remove(1));
+        checkUnsupported("removeAll", () -> set.removeAll(Collections.singletonList(1)));
+        checkUnsupported("retainAll", () -> set.retainAll(Collections.singletonList(0)));
     }
 
-    private void checkUnsupported(final Runnable command) {
+    private void checkUnsupported(final String method, final Runnable command) {
         try {
             command.run();
-            Assert.fail("add should throw UnsupportedOperationException");
+            Assert.fail("Mathod '" + method + "' should throw UnsupportedOperationException");
         } catch (final UnsupportedOperationException ignore) {
         }
     }
@@ -205,6 +205,7 @@ public class SortedSetTest extends BaseTest {
         Assert.assertEquals("invalid toArray " + context, toArray(set), toArray(set));
         Assert.assertEquals("invalid set size " + context, treeSet.size(), (Object) set.size());
         Assert.assertEquals("invalid isEmpty " + context, treeSet.isEmpty(), set.isEmpty());
+        Assert.assertSame("invalid comparator " + context, treeSet.comparator(), set.comparator());
     }
 
     protected SortedSet<Integer> treeSet(final List<Integer> elements, final Comparator<Integer> comparator) {
