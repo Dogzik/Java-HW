@@ -1,8 +1,23 @@
-Тесты к курсу «Технологии Java»
-====
+# Тесты к курсу «Технологии Java»
 
-Домашнее задание 2. ArraySortedSet
-----
+
+## Домашнее задание 3. Студенты
+
+* Протестировать сложную версию задания:
+
+        info.kgeorgiy.java.advanced.student.Tester StudentGroupQuery <полное имя класса>
+
+* Протестировать простую версию задания:
+
+        info.kgeorgiy.java.advanced.student.Tester StudentQuery <полное имя класса>
+
+Исходный код:
+
+* Простой вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentQueryTest.java)
+* Сложный вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentGroupQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentGroupQueryTest.java)
+
+
+## Домашнее задание 2. ArraySortedSet
 
 * Протестировать сложную версию задания:
 
@@ -18,8 +33,8 @@
 * [Сложный вариант](java/info/kgeorgiy/java/advanced/arrayset/NavigableSetTest.java)
 
 
-Домашнее задание 1. Обход файлов
-----
+## Домашнее задание 1. Обход файлов
+
 Для того, чтобы протестировать программу:
 
  * Скачайте тесты ([WalkTest.jar](artifacts/WalkTest.jar)) и библиотеки к ним:

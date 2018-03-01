@@ -5,11 +5,7 @@ import net.java.quickcheck.Generator;
 import net.java.quickcheck.collection.Pair;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runners.MethodSorters;
 
 import java.util.*;
@@ -28,13 +24,6 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.integers;
 public class SortedSetTest extends BaseTest {
 
     public static final int PERFORMANCE_SIZE = 100_000;
-
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-        protected void starting(final Description description) {
-            System.out.println("== Running " + description.getMethodName());
-        }
-    };
 
     @Test
     public void test01_constructors() {
