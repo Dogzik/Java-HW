@@ -1,5 +1,7 @@
 # Тесты к курсу «Технологии Java»
 
+[Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
+
 
 ## Домашнее задание 3. Студенты
 
@@ -10,6 +12,7 @@
 * Протестировать простую версию задания:
 
         info.kgeorgiy.java.advanced.student.Tester StudentQuery <полное имя класса>
+
 
 Исходный код:
 
@@ -26,6 +29,7 @@
 * Протестировать простую версию задания:
 
         info.kgeorgiy.java.advanced.arrayset.Tester SortedSet <полное имя класса>
+
 
 Исходный код тестов:
 
@@ -49,6 +53,7 @@
         info.kgeorgiy.java.advanced.walk.Tester RecursiveWalk <полное имя класса>
 
  * Обратите внимание, что все скачанные `.jar` файлы должны быть указаны в `CLASSPATH`.
+
 
 Исходный код тестов:
 
