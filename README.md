@@ -12,7 +12,6 @@
  * сложный вариант:
     ```info.kgeorgiy.java.advanced.student.Tester StudentGroupQuery <полное имя класса>```
 
-
 Исходный код
 
  * простой вариант:
