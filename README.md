@@ -5,36 +5,34 @@
 
 ## Домашнее задание 3. Студенты
 
-* Протестировать сложную версию задания:
+ * Протестировать сложную версию задания:
 
         info.kgeorgiy.java.advanced.student.Tester StudentGroupQuery <полное имя класса>
 
-* Протестировать простую версию задания:
+ * Протестировать простую версию задания:
 
         info.kgeorgiy.java.advanced.student.Tester StudentQuery <полное имя класса>
 
-
 Исходный код:
 
-* Простой вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentQueryTest.java)
-* Сложный вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentGroupQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentGroupQueryTest.java)
+ * Простой вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentQueryTest.java)
+ * Сложный вариант: [интерфейс](java/info/kgeorgiy/java/advanced/student/StudentGroupQuery.java), [тесты](java/info/kgeorgiy/java/advanced/student/StudentGroupQueryTest.java)
 
 
 ## Домашнее задание 2. ArraySortedSet
 
-* Протестировать сложную версию задания:
+ * Протестировать сложную версию задания:
 
         info.kgeorgiy.java.advanced.arrayset.Tester NavigableSet <полное имя класса>
 
-* Протестировать простую версию задания:
+ * Протестировать простую версию задания:
 
         info.kgeorgiy.java.advanced.arrayset.Tester SortedSet <полное имя класса>
 
-
 Исходный код тестов:
 
-* [Простой вариант](java/info/kgeorgiy/java/advanced/arrayset/SortedSetTest.java)
-* [Сложный вариант](java/info/kgeorgiy/java/advanced/arrayset/NavigableSetTest.java)
+ * [Простой вариант](java/info/kgeorgiy/java/advanced/arrayset/SortedSetTest.java)
+ * [Сложный вариант](java/info/kgeorgiy/java/advanced/arrayset/NavigableSetTest.java)
 
 
 ## Домашнее задание 1. Обход файлов
@@ -54,8 +52,7 @@
 
  * Обратите внимание, что все скачанные `.jar` файлы должны быть указаны в `CLASSPATH`.
 
-
 Исходный код тестов:
 
-* [Простой вариант](java/info/kgeorgiy/java/advanced/walk/WalkTest.java)
-* [Сложный вариант](java/info/kgeorgiy/java/advanced/walk/RecursiveWalkTest.java)
+ * [Простой вариант](java/info/kgeorgiy/java/advanced/walk/WalkTest.java)
+ * [Сложный вариант](java/info/kgeorgiy/java/advanced/walk/RecursiveWalkTest.java)
