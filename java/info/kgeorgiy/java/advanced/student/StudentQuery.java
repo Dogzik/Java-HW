@@ -2,6 +2,7 @@ package info.kgeorgiy.java.advanced.student;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -45,4 +46,7 @@ public interface StudentQuery {
 
     /** Returns list of students having specified groups. Students are ordered by name. */
     List<Student> findStudentsByGroup(Collection<Student> students, String group);
+
+    /** Returns map of group's student last names mapped to minimal first name. */
+    Map<String, String> findStudentNamesByGroup(final Collection<Student> students, final String group);
 }

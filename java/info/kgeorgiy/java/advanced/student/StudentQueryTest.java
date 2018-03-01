@@ -132,21 +132,28 @@ public class StudentQueryTest extends BaseTest {
         );
     }
 
+    @Test
+    public void test12_findStudentNamesByGroup() {
+        testString(
+                students -> find(db::findStudentNamesByGroup, students, GROUPS).toString(),
+                "{}", "{Абрамов=Александр, Амиров=Анвер}", "{Абрамов=Александр}"
+        );
+    }
+
     private void testGet(final Function<List<Student>, Collection<String>> query, final String... answers) {
         testString(query.andThen(vs -> vs.stream().collect(Collectors.joining(","))), answers);
     }
 
     protected void testString(final Function<List<Student>, String> query, final String... answers) {
-        test(
-                query,
-                (students, answer) -> answer,
-                answers
-        );
+        test(query, (students, answer) -> answer, answers);
     }
 
-
     private void testFind(final BiFunction<List<Student>, String, List<Student>> query, final List<String> values, final int[]... answers) {
-        testList(students -> query.apply(students, values.get(students.size() % values.size())), answers);
+        testList(students -> find(query, students, values), answers);
+    }
+
+    private <T> T find(final BiFunction<List<Student>, String, T> query, final List<Student> students, final List<String> values) {
+        return query.apply(students, values.get(students.size() % values.size()));
     }
 
     private void testList(final Function<List<Student>, List<Student>> query, final int[]... answers) {
