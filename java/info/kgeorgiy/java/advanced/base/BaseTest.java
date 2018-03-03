@@ -11,6 +11,7 @@ import org.junit.runners.JUnit4;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,11 +23,16 @@ public class BaseTest {
     public static final String CUT_PROPERTY = "cut";
 
     @Rule
-    public TestRule watcher = new TestWatcher() {
-        protected void starting(final Description description) {
-            System.err.println("=== Running " + description.getMethodName());
-        }
-    };
+    public TestRule watcher = watcher(description -> System.err.println("=== Running " + description.getMethodName()));
+
+    protected static TestWatcher watcher(final Consumer<Description> watcher) {
+        return new TestWatcher() {
+            @Override
+            protected void starting(final Description description) {
+                watcher.accept(description);
+            }
+        };
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> T createCUT() {
