@@ -7,6 +7,7 @@ import info.kgeorgiy.java.advanced.student.Student;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -23,8 +25,8 @@ import java.util.Map.Entry;
 public class StudentDB implements StudentGroupQuery {
 
     private Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
-                                                 .thenComparing(Student::getFirstName, String::compareTo)
-                                                 .thenComparingInt(Student::getId);
+            .thenComparing(Student::getFirstName, String::compareTo)
+            .thenComparingInt(Student::getId);
 
     private List<String> mappedStudents(List<Student> students, Function<Student, String> mapper) {
         return students.stream().map(mapper).collect(Collectors.toList());
@@ -115,10 +117,18 @@ public class StudentDB implements StudentGroupQuery {
                 .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, StudentDB::minString));
     }
 
-    private Stream<Entry<String, List<Student>>> getGroupsStream(Collection<Student> students) {
+    private Stream<Entry<String, List<Student>>> getAnyGroupsStream(Collection<Student> students, Supplier<Map<String, List<Student>>> mapSupplier) {
         return students.stream()
-                .collect(Collectors.groupingBy(Student::getGroup, TreeMap::new, Collectors.toList()))
+                .collect(Collectors.groupingBy(Student::getGroup, mapSupplier, Collectors.toList()))
                 .entrySet().stream();
+    }
+
+    private Stream<Entry<String, List<Student>>> getGroupsStream(Collection<Student> students) {
+        return getAnyGroupsStream(students, HashMap::new);
+    }
+
+    private Stream<Entry<String, List<Student>>> getSortedGroupsStream(Collection<Student> students) {
+        return getAnyGroupsStream(students, TreeMap::new);
     }
 
     private List<Group> getSortedGroups(Stream<Entry<String, List<Student>>> groupsStream, UnaryOperator<List<Student>> sorter) {
@@ -128,12 +138,12 @@ public class StudentDB implements StudentGroupQuery {
 
     @Override
     public List<Group> getGroupsByName(Collection<Student> students) {
-        return getSortedGroups(getGroupsStream(students), this::sortStudentsByName);
+        return getSortedGroups(getSortedGroupsStream(students), this::sortStudentsByName);
     }
 
     @Override
     public List<Group> getGroupsById(Collection<Student> students) {
-        return getSortedGroups(getGroupsStream(students), this::sortStudentsById);
+        return getSortedGroups(getSortedGroupsStream(students), this::sortStudentsById);
     }
 
     private String getFilteredLargestGroup(Stream<Entry<String, List<Student>>> groupsStream, ToIntFunction<List<Student>> filter) {
