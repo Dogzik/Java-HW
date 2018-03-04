@@ -155,16 +155,6 @@ public class StudentDB implements StudentGroupQuery {
 
     @Override
     public String getLargestGroup(Collection<Student> students) {
-        /*
-        Set<Entry<String, List<Student>>> tmp = students.stream()
-                .collect(Collectors.groupingBy(Student::getGroup, TreeMap::new, Collectors.toList()))
-                .entrySet();
-
-        students.forEach(student -> System.out.println(student.toString()));
-        tmp.forEach(elem -> System.out.println(elem.getKey() + " " + elem.getValue().size()));
-        System.out.println();
-        */
-
         return getFilteredLargestGroup(getGroupsStream(students), List::size);
     }
 
