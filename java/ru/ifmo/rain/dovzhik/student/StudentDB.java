@@ -49,7 +49,7 @@ public class StudentDB implements StudentGroupQuery {
 
     @Override
     public List<String> getFullNames(List<Student> students) {
-        return mappedStudents(students, student -> student.getFirstName() + " " + student.getLastName());
+        return mappedStudents(students, student -> String.format("%s %s", student.getFirstName(), student.getLastName()));
     }
 
     @Override
