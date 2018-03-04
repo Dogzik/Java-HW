@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -23,7 +24,6 @@ import java.util.stream.Stream;
 import java.util.Map.Entry;
 
 public class StudentDB implements StudentGroupQuery {
-
     private Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
             .thenComparing(Student::getFirstName, String::compareTo)
             .thenComparingInt(Student::getId);
@@ -54,12 +54,12 @@ public class StudentDB implements StudentGroupQuery {
 
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
-        return new HashSet<>(getFirstNames(students));
+        return new TreeSet<>(getFirstNames(students));
     }
 
     @Override
     public String getMinStudentFirstName(List<Student> students) {
-        return students.stream().min(Comparator.comparingInt(Student::getId)).get().getFirstName();
+        return students.stream().min(Student::compareTo).get().getFirstName();
     }
 
     private List<Student> sortedStudents(Stream<Student> studentStream, Comparator<Student> cmp) {
@@ -68,7 +68,7 @@ public class StudentDB implements StudentGroupQuery {
 
     @Override
     public List<Student> sortStudentsById(Collection<Student> students) {
-        return sortedStudents(students.stream(), Comparator.comparingInt(Student::getId));
+        return sortedStudents(students.stream(), Student::compareTo);
     }
 
     @Override
