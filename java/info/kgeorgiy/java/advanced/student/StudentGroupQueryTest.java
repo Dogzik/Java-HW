@@ -35,7 +35,7 @@ public class StudentGroupQueryTest extends StudentQueryTest {
     public void test23_testGetLargestGroup() {
         testString(
                 db::getLargestGroup,
-                "M3138", "M3138", "M3138"
+                "M3138", "M3138", "M3139"
         );
     }
 
