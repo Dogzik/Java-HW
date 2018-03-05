@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +23,7 @@ import java.util.stream.Stream;
 import java.util.Map.Entry;
 
 public class StudentDB implements StudentGroupQuery {
-    private Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
+    private final Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
             .thenComparing(Student::getFirstName, String::compareTo)
             .thenComparingInt(Student::getId);
 
