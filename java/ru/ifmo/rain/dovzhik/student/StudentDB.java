@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.Map.Entry;
@@ -91,19 +92,23 @@ public class StudentDB implements StudentGroupQuery {
         return students.stream().filter(predicate);
     }
 
+    private List<Student> filterAndSortByName(Collection<Student> students, Predicate<Student> predicate) {
+        return sortedStudents(filteredStudentsStream(students, predicate), nameComparator);
+    }
+
     @Override
     public List<Student> findStudentsByFirstName(Collection<Student> students, String name) {
-        return sortedStudents(filteredStudentsStream(students, getFirstNamePredicate(name)), nameComparator);
+        return filterAndSortByName(students, getFirstNamePredicate(name));
     }
 
     @Override
     public List<Student> findStudentsByLastName(Collection<Student> students, String name) {
-        return sortedStudents(filteredStudentsStream(students, getLastNamePredicate(name)), nameComparator);
+        return filterAndSortByName(students, getLastNamePredicate(name));
     }
 
     @Override
     public List<Student> findStudentsByGroup(Collection<Student> students, String group) {
-        return sortedStudents(filteredStudentsStream(students, getGroupPredicate(group)), nameComparator);
+        return filterAndSortByName(students, getGroupPredicate(group));
     }
 
     private static String minString(final String s1, final String s2) {
