@@ -146,6 +146,9 @@ public class WalkTest extends BaseTest {
                 Assert.assertTrue("Unexpected file " + parts[1], files.containsKey(parts[1]));
                 Assert.assertEquals("Wrong hash", String.format("%08x", files.remove(parts[1])), parts[0]);
             }
+            if (!files.isEmpty()) {
+                Assert.fail("Hash for " + files.keySet().iterator().next() + " not found");
+            }
         } catch (final IOException e) {
             throw new AssertionError("Cannot write output file " + outputFile);
         }
