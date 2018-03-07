@@ -66,14 +66,18 @@ public class StudentDB implements StudentGroupQuery {
         return studentStream.sorted(cmp).collect(Collectors.toList());
     }
 
+    private List<Student> simplySortedStudents(Collection<Student> students, Comparator<Student> cmp) {
+        return sortedStudents(students.stream(), cmp);
+    }
+
     @Override
     public List<Student> sortStudentsById(Collection<Student> students) {
-        return sortedStudents(students.stream(), Student::compareTo);
+        return simplySortedStudents(students, Student::compareTo);
     }
 
     @Override
     public List<Student> sortStudentsByName(Collection<Student> students) {
-        return sortedStudents(students.stream(), nameComparator);
+        return simplySortedStudents(students, nameComparator);
     }
 
     private Predicate<Student> getFirstNamePredicate(String firstName) {
