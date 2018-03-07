@@ -1,65 +1,72 @@
 package ru.ifmo.rain.dovzhik.student;
 
 import info.kgeorgiy.java.advanced.student.Group;
-import info.kgeorgiy.java.advanced.student.StudentGroupQuery;
 import info.kgeorgiy.java.advanced.student.Student;
+import info.kgeorgiy.java.advanced.student.StudentGroupQuery;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Map.Entry;
 
 public class StudentDB implements StudentGroupQuery {
-    private final Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
+    private static final Comparator<Student> nameComparator = Comparator.comparing(Student::getLastName, String::compareTo)
             .thenComparing(Student::getFirstName, String::compareTo)
             .thenComparingInt(Student::getId);
 
-    private List<String> mappedStudents(List<Student> students, Function<Student, String> mapper) {
-        return students.stream().map(mapper).collect(Collectors.toList());
+    public static final String EMPTY_STRING = "";
+
+    private <C extends Collection<String>> C mappedStudentsCollection(List<Student> students, Function<Student, String> mapper, Supplier<C> collection) {
+        return students.stream().map(mapper).collect(Collectors.toCollection(collection));
+    }
+
+    private List<String> mappedStudentsList(List<Student> students, Function<Student, String> mapper) {
+        return mappedStudentsCollection(students, mapper, ArrayList::new);
     }
 
     @Override
     public List<String> getFirstNames(List<Student> students) {
-        return mappedStudents(students, Student::getFirstName);
+        return mappedStudentsList(students, Student::getFirstName);
     }
 
     @Override
     public List<String> getLastNames(List<Student> students) {
-        return mappedStudents(students, Student::getLastName);
+        return mappedStudentsList(students, Student::getLastName);
     }
 
     @Override
     public List<String> getGroups(List<Student> students) {
-        return mappedStudents(students, Student::getGroup);
+        return mappedStudentsList(students, Student::getGroup);
     }
 
     @Override
     public List<String> getFullNames(List<Student> students) {
-        return mappedStudents(students, student -> String.format("%s %s", student.getFirstName(), student.getLastName()));
+        return mappedStudentsList(students, student -> student.getFirstName() + " " + student.getLastName());
     }
 
     @Override
     public Set<String> getDistinctFirstNames(List<Student> students) {
-        return new TreeSet<>(getFirstNames(students));
+        return mappedStudentsCollection(students, Student::getFirstName, TreeSet::new);
     }
 
     @Override
     public String getMinStudentFirstName(List<Student> students) {
-        return students.stream().min(Student::compareTo).get().getFirstName();
+        return students.stream().min(Student::compareTo).map(Student::getFirstName).orElse(EMPTY_STRING);
     }
 
     private List<Student> sortedStudents(Stream<Student> studentStream, Comparator<Student> cmp) {
@@ -115,14 +122,10 @@ public class StudentDB implements StudentGroupQuery {
         return filterAndSortByName(students, getGroupPredicate(group));
     }
 
-    private static String minString(final String s1, final String s2) {
-        return s1.compareTo(s2) < 0 ? s1 : s2;
-    }
-
     @Override
     public Map<String, String> findStudentNamesByGroup(Collection<Student> students, String group) {
         return filteredStudentsStream(students, getGroupPredicate(group))
-                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, StudentDB::minString));
+                .collect(Collectors.toMap(Student::getLastName, Student::getFirstName, BinaryOperator.minBy(String::compareTo)));
     }
 
     private Stream<Entry<String, List<Student>>> getAnyGroupsStream(Collection<Student> students, Supplier<Map<String, List<Student>>> mapSupplier) {
@@ -158,7 +161,7 @@ public class StudentDB implements StudentGroupQuery {
         return groupsStream
                 .max(Comparator.comparingInt((Entry<String, List<Student>> group) -> filter.applyAsInt(group.getValue()))
                         .thenComparing(Entry::getKey, Collections.reverseOrder(String::compareTo)))
-                .get().getKey();
+                .map(Entry::getKey).orElse(EMPTY_STRING);
     }
 
     @Override
