@@ -11,6 +11,7 @@ import java.util.Map;
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
 public class BaseTester {
+    private final long start = System.currentTimeMillis();
     private final Map<String, Class<?>> tests = new HashMap<>();
 
     public void run(final String[] args) {
@@ -36,7 +37,8 @@ public class BaseTester {
             System.exit(1);
         } else {
             System.out.println("============================");
-            System.out.println("OK " + token.getSimpleName() + " for " + args[1]);
+            final long time = System.currentTimeMillis() - start;
+            System.out.printf("OK %s for %s in %dms %n", token.getSimpleName(), args[1], time);
             certify(token, args.length > 2 ? args[2] : "");
         }
     }

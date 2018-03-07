@@ -8,8 +8,8 @@ import info.kgeorgiy.java.advanced.base.BaseTester;
 public class Tester extends BaseTester {
     public static void main(final String... args) {
         new Tester()
-                .add("StudentQuery", StudentQueryTest.class)
-                .add("StudentGroupQuery", StudentGroupQueryTest.class)
+                .add("StudentQuery", StudentQueryFullTest.class)
+                .add("StudentGroupQuery", StudentGroupQueryFullTest.class)
                 .run(args);
     }
 }
