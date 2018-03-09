@@ -243,14 +243,6 @@ public class SortedSetTest extends BaseTest {
         }
     }
 
-    private void checkConstructor(final String description, final Class<?> token, final Class<?>... params) {
-        try {
-            token.getConstructor(params);
-        } catch (final NoSuchMethodException e) {
-            Assert.fail(token.getName() + " should have " + description);
-        }
-    }
-
     @Test
     public void test11_comparator() {
         for (final Pair<NamedComparator, List<Integer>> pair : withComparator()) {

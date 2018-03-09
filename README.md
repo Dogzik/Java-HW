@@ -3,6 +3,24 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
 
+## Домашнее задание 4. Implementor
+
+Класс должен реализовывать интерфейс
+[Impler](java/info/kgeorgiy/java/advanced/implementor/Impler.java).
+
+Тестирование
+
+ * простой вериант:
+    ```info.kgeorgiy.java.advanced.implementor.Tester interface <полное имя класса>```
+ * сложный вериант:
+    ```info.kgeorgiy.java.advanced.implementor.Tester class <полное имя класса>```
+
+Исходный код тестов:
+
+* [простой вариант](java/info/kgeorgiy/java/advanced/implementor/BasicInterfaceImplementorTest.java)
+* [сложный вариант](java/info/kgeorgiy/java/advanced/implementor/BasicClassImplementorTest.java)
+
+
 ## Домашнее задание 3. Студенты
 
 Тестирование

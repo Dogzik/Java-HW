@@ -72,6 +72,14 @@ public class BaseTest {
         parallelCommands(threads, Stream.generate(() -> command).limit(threads).collect(Collectors.toList()));
     }
 
+    protected void checkConstructor(final String description, final Class<?> token, final Class<?>... params) {
+        try {
+            token.getConstructor(params);
+        } catch (final NoSuchMethodException e) {
+            Assert.fail(token.getName() + " should have " + description);
+        }
+    }
+
     public interface Command extends Callable<Void> {
         @Override
         default Void call() throws Exception {
