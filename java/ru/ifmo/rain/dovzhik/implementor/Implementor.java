@@ -114,7 +114,7 @@ public class Implementor implements Impler {
             }
         }
 
-        try (BufferedWriter writer = Files.newBufferedWriter(root)){
+        try (BufferedWriter writer = Files.newBufferedWriter(root)) {
             try {
                 writer.write(getClassHead(token));
                 if (!token.isInterface()) {
@@ -137,12 +137,12 @@ public class Implementor implements Impler {
     }
 
     private String getParam(Parameter param, boolean typeNeeded) {
-        String res = typeNeeded ? param.getType().getCanonicalName() + SPACE : "";
-        return res + param.getName();
+        return (typeNeeded ? param.getType().getCanonicalName() + SPACE : "") + param.getName();
     }
 
     private String getParams(Executable exec, boolean typedNeeded) {
-        return Arrays.stream(exec.getParameters()).map(param -> getParam(param, typedNeeded))
+        return Arrays.stream(exec.getParameters())
+                .map(param -> getParam(param, typedNeeded))
                 .collect(Collectors.joining(COMMA + SPACE, "(", ")"));
     }
 
@@ -152,7 +152,10 @@ public class Implementor implements Impler {
         if (exceptions.length > 0) {
             res.append(SPACE + "throws" + SPACE);
         }
-        res.append(Arrays.stream(exceptions).map(Class::getCanonicalName).collect(Collectors.joining(COMMA + SPACE)));
+        res.append(Arrays.stream(exceptions)
+                .map(Class::getCanonicalName)
+                .collect(Collectors.joining(COMMA + SPACE))
+        );
         return res;
     }
 
@@ -167,8 +170,7 @@ public class Implementor implements Impler {
 
     private String getBody(Executable exec) {
         if (exec instanceof Method) {
-            Method tmp = (Method) exec;
-            return "return" + getDefaultValue(tmp.getReturnType());
+            return "return" + getDefaultValue(((Method) exec).getReturnType());
         } else {
             return "super" + getParams(exec, false);
         }
@@ -177,7 +179,8 @@ public class Implementor implements Impler {
     private StringBuilder getExecutable(Class<?> token, Executable exec) {
         StringBuilder res = new StringBuilder(getTabs(1));
         final int mods = exec.getModifiers() & ~Modifier.ABSTRACT & ~Modifier.NATIVE & ~Modifier.TRANSIENT;
-        res.append(Modifier.toString(mods)).append(mods > 0 ? SPACE : "")
+        res.append(Modifier.toString(mods))
+                .append(mods > 0 ? SPACE : "")
                 .append(getReturnTypeAndName(token, exec))
                 .append(getParams(exec, true))
                 .append(getExceptions(exec)).append(SPACE)
@@ -194,7 +197,8 @@ public class Implementor implements Impler {
     }
 
     private void getAbstractMethods(Method[] methods, Set<MethodWrapper> storage) {
-        Arrays.stream(methods).filter(method -> Modifier.isAbstract(method.getModifiers()))
+        Arrays.stream(methods)
+                .filter(method -> Modifier.isAbstract(method.getModifiers()))
                 .map(MethodWrapper::new).collect(Collectors.toCollection(() -> storage));
     }
 
@@ -212,7 +216,8 @@ public class Implementor implements Impler {
 
     private void implementConstructors(Class<?> token, BufferedWriter writer) throws IOException, ImplerException {
         Constructor<?>[] constructors = token.getDeclaredConstructors();
-        constructors = Arrays.stream(constructors).filter(constructor -> !Modifier.isPrivate(constructor.getModifiers()))
+        constructors = Arrays.stream(constructors)
+                .filter(constructor -> !Modifier.isPrivate(constructor.getModifiers()))
                 .toArray(Constructor<?>[]::new);
         if (constructors.length == 0) {
             throw new ImplerException("No non-private constructors in class");
