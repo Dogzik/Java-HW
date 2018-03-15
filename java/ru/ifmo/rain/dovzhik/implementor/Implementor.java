@@ -215,8 +215,7 @@ public class Implementor implements Impler {
     }
 
     private void implementConstructors(Class<?> token, BufferedWriter writer) throws IOException, ImplerException {
-        Constructor<?>[] constructors = token.getDeclaredConstructors();
-        constructors = Arrays.stream(constructors)
+        Constructor<?>[] constructors = Arrays.stream(token.getDeclaredConstructors())
                 .filter(constructor -> !Modifier.isPrivate(constructor.getModifiers()))
                 .toArray(Constructor<?>[]::new);
         if (constructors.length == 0) {
