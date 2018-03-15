@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Implementor implements Impler {
-
     private final static String DEFAULT_OBJECT = " null";
     private final static String DEFAULT_PRIMITIVE = " 0";
     private final static String DEFAULT_VOID = "";
