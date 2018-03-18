@@ -19,7 +19,6 @@ public class InterfaceJarImplementorTest extends BasicInterfaceImplementorTest {
         assertConstructor(Impler.class, JarImpler.class);
     }
 
-    @Test
     @Override
     protected void implement(final Path root, final Impler implementor, final Class<?> clazz) throws ImplerException {
         super.implement(root, implementor, clazz);
