@@ -12,7 +12,7 @@ import java.nio.file.Path;
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class InterfaceJarImplementorTest extends BasicInterfaceImplementorTest {
+public class InterfaceJarImplementorTest extends InterfaceImplementorTest {
     @Test
     @Override
     public void test01_constructor() {
