@@ -42,6 +42,7 @@ public class Implementor implements JarImpler {
     private final static String EOLN = System.lineSeparator();
     private final static String JAVA = ".java";
     private final static String CLASS = ".class";
+    private final static Cleaner DELETER = new Cleaner();
 
     private static class MethodWrapper {
         private final Method inner;
@@ -75,6 +76,20 @@ public class Implementor implements JarImpler {
 
         Method getInner() {
             return inner;
+        }
+    }
+
+    private static class Cleaner extends SimpleFileVisitor<Path> {
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            Files.delete(dir);
+            return FileVisitResult.CONTINUE;
         }
     }
 
@@ -152,24 +167,8 @@ public class Implementor implements JarImpler {
         }
     }
 
-    private Path getAncestor(Path file) {
-        return file.getParent() != null ? file.getParent() : Paths.get(System.getProperty("user.dir"));
-    }
-
     private static void clean(Path path) throws IOException {
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+        Files.walkFileTree(path, DELETER);
     }
 
     private static Path getFilePath(Path path, Class<?> token, String end) {
@@ -183,7 +182,7 @@ public class Implementor implements JarImpler {
         createDirectories(outputFile);
         Path tempDir;
         try {
-            tempDir = Files.createTempDirectory(getAncestor(outputFile), "temp");
+            tempDir = Files.createTempDirectory(outputFile.getParent().toAbsolutePath().getParent(), "temp");
         } catch (IOException e) {
             throw new ImplerException("Unable to create temp directory", e);
         }
@@ -199,10 +198,14 @@ public class Implementor implements JarImpler {
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
         attributes.put(Attributes.Name.IMPLEMENTATION_VENDOR, "Lev Dovzhik");
         try (JarOutputStream writer = new JarOutputStream(Files.newOutputStream(outputFile), manifest)) {
-            writer.putNextEntry(new ZipEntry(token.getName().replace('.', '/') + "Impl.class"));
-            Files.copy(getFilePath(tempDir, token, CLASS), writer);
+            try {
+                writer.putNextEntry(new ZipEntry(token.getName().replace('.', '/') + "Impl.class"));
+                Files.copy(getFilePath(tempDir, token, CLASS), writer);
+            } catch (IOException e) {
+                throw new ImplerException("Unable to write to JAR file", e);
+            }
         } catch (IOException e) {
-            throw new ImplerException("Unable to write JAR file", e);
+            throw new ImplerException("Unable to create JAR file", e);
         }
         try {
             clean(tempDir);
@@ -240,12 +243,12 @@ public class Implementor implements JarImpler {
         return res;
     }
 
-    private static String getReturnTypeAndName(Class<?> token, Executable exec) {
+    private static String getReturnTypeAndName(Executable exec) {
         if (exec instanceof Method) {
             Method tmp = (Method) exec;
             return tmp.getReturnType().getCanonicalName() + SPACE + tmp.getName();
         } else {
-            return getClassName(token);
+            return getClassName(((Constructor<?>) exec).getDeclaringClass());
         }
     }
 
@@ -257,12 +260,12 @@ public class Implementor implements JarImpler {
         }
     }
 
-    private static StringBuilder getExecutable(Class<?> token, Executable exec) {
+    private static StringBuilder getExecutable(Executable exec) {
         StringBuilder res = new StringBuilder(getTabs(1));
         final int mods = exec.getModifiers() & ~Modifier.ABSTRACT & ~Modifier.NATIVE & ~Modifier.TRANSIENT;
         res.append(Modifier.toString(mods))
                 .append(mods > 0 ? SPACE : "")
-                .append(getReturnTypeAndName(token, exec))
+                .append(getReturnTypeAndName(exec))
                 .append(getParams(exec, true))
                 .append(getExceptions(exec))
                 .append(SPACE)
@@ -281,7 +284,8 @@ public class Implementor implements JarImpler {
     private static void getAbstractMethods(Method[] methods, Set<MethodWrapper> storage) {
         Arrays.stream(methods)
                 .filter(method -> Modifier.isAbstract(method.getModifiers()))
-                .map(MethodWrapper::new).collect(Collectors.toCollection(() -> storage));
+                .map(MethodWrapper::new)
+                .collect(Collectors.toCollection(() -> storage));
     }
 
     private static void implementAbstractMethods(Class<?> token, Writer writer) throws IOException {
@@ -292,7 +296,7 @@ public class Implementor implements JarImpler {
             token = token.getSuperclass();
         }
         for (MethodWrapper method : methods) {
-            writer.write(getExecutable(null, method.getInner()).toString());
+            writer.write(getExecutable(method.getInner()).toString());
         }
     }
 
@@ -304,7 +308,7 @@ public class Implementor implements JarImpler {
             throw new ImplerException("No non-private constructors in class");
         }
         for (Constructor<?> constructor : constructors) {
-            writer.write(getExecutable(token, constructor).toString());
+            writer.write(getExecutable(constructor).toString());
         }
     }
 
