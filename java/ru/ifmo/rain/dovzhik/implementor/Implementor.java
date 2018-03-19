@@ -1,6 +1,5 @@
 package ru.ifmo.rain.dovzhik.implementor;
 
-import info.kgeorgiy.java.advanced.implementor.Impler;
 import info.kgeorgiy.java.advanced.implementor.ImplerException;
 import info.kgeorgiy.java.advanced.implementor.JarImpler;
 
@@ -322,7 +321,7 @@ public class Implementor implements JarImpler {
                 System.out.println("All arguments must be non-null");
             }
         }
-        Implementor implementor = new Implementor();
+        JarImpler implementor = new Implementor();
         try {
             if (args.length == 2) {
                 implementor.implement(Class.forName(args[0]), Paths.get(args[1]));
