@@ -313,7 +313,8 @@ public class Implementor implements JarImpler {
      * Generated class full name should be same as full name of the type token with <tt>Impl</tt> suffix
      * added.
      * <p>
-     * During implementation creates temporary folder to store temporary <tt>.java</tt> and <tt>.class</tt> files
+     * During implementation creates temporary folder to store temporary <tt>.java</tt> and <tt>.class</tt> files.
+     * If program fails to delete temporary folder, it informs user about it.
      * @throws ImplerException if the given class cannot be generated for one of such reasons:
      *  <ul>
      *  <li> Some arguments are <tt>null</tt></li>
