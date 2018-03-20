@@ -112,7 +112,7 @@ public class Implementor implements JarImpler {
 
         /**
          * Calculates hashcode for this wrapper via polynomial hashing
-         * using hashes of name, return type and parameters' parameters of its {@link #inner}
+         * using hashes of name, return type and parameters' types of its {@link #inner}
          *
          * @return hashcode for this wrapper
          */
@@ -535,6 +535,7 @@ public class Implementor implements JarImpler {
     }
 
     /**
+     * This function is used to choose which way of implementation to execute.
      * Runs {@link Implementor} in two possible ways:
      *  <ul>
      *  <li> 2 arguments: <tt>className rootPath</tt> - runs {@link #implement(Class, Path)} with given arguments</li>
