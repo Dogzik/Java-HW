@@ -8,12 +8,16 @@ import javax.tools.ToolProvider;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -62,6 +66,11 @@ public class Implementor implements JarImpler {
      * Static instance of {@link Cleaner} used inside {@link #clean(Path)}
      */
     private final static Cleaner DELETER = new Cleaner();
+
+    /**
+     * Creates new instance of {@link Implementor}
+     */
+    public Implementor() {}
 
     /**
      * Static class used for correct representing {@link Method}
@@ -136,6 +145,14 @@ public class Implementor implements JarImpler {
      * Static class used for recursive deleting of folders
      */
     private static class Cleaner extends SimpleFileVisitor<Path> {
+
+        /**
+         * Creates new instance if {@link Cleaner}
+         */
+        Cleaner(){
+            super();
+        }
+
         /**
          * Deletes file represented by <tt>file</tt>
          *
@@ -180,16 +197,33 @@ public class Implementor implements JarImpler {
     }
 
     /**
+     * Converts given string to unicode escaping
+     * @param in {@link String} to convert
+     * @return converted string
+     */
+    private static String toUnicode(String in) {
+        StringBuilder b = new StringBuilder();
+        for (char c : in.toCharArray()) {
+            if (c >= 128) {
+                b.append(String.format("\\u%04X", (int) c));
+            } else {
+                b.append(c);
+            }
+        }
+        return b.toString();
+    }
+
+    /**
      * Returns tabs, whose amount if specified by <tt>cnt</tt>
      * @param cnt number of tabs to return
-     * @return {@link StringBuilder} consisting of needed amount of tabs
+     * @return {@link String} consisting of needed amount of tabs
      */
-    private static StringBuilder getTabs(int cnt) {
+    private static String getTabs(int cnt) {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < cnt; i++) {
             res.append(TAB);
         }
-        return res;
+        return res.toString();
     }
 
     /**
@@ -222,13 +256,13 @@ public class Implementor implements JarImpler {
      * @param token class to get package
      * @return {@link String} representing package
      */
-    private static StringBuilder getPackage(Class<?> token) {
+    private static String getPackage(Class<?> token) {
         StringBuilder res = new StringBuilder();
         if (!token.getPackage().getName().equals("")) {
             res.append("package" + SPACE).append(token.getPackage().getName()).append(";").append(EOLN);
         }
         res.append(EOLN);
-        return res;
+        return res.toString();
     }
 
     /**
@@ -253,7 +287,6 @@ public class Implementor implements JarImpler {
      *  <li> Some arguments are <tt>null</tt></li>
      *  <li> Given <tt>class</tt> is primitive or array. </li>
      *  <li> Given <tt>class</tt> is final class or {@link Enum}. </li>
-     *  <li> The process is not allowed to create files or directories. </li>
      *  <li> <tt>class</tt> isn't an interface and contains only private constructors. </li>
      *  <li> The problems with I/O occurred during implementation. </li>
      *  </ul>
@@ -266,19 +299,15 @@ public class Implementor implements JarImpler {
         }
         root = getFilePath(root, token, JAVA);
         createDirectories(root);
-        try (BufferedWriter writer = Files.newBufferedWriter(root)) {
-            try {
-                writer.write(getClassHead(token));
-                if (!token.isInterface()) {
-                    implementConstructors(token, writer);
-                }
-                implementAbstractMethods(token, writer);
-                writer.write("}" + EOLN);
-            } catch (IOException e) {
-                throw new ImplerException("Unable to write to output file", e);
+        try (Writer writer = Files.newBufferedWriter(root)) {
+            writer.write(toUnicode(getClassHead(token)));
+            if (!token.isInterface()) {
+                implementConstructors(token, writer);
             }
+            implementAbstractMethods(token, writer);
+            writer.write(toUnicode("}" + EOLN));
         } catch (IOException e) {
-            throw new ImplerException("Unable to create output file", e);
+            throw new ImplerException("Unable to write to output file", e);
         }
     }
 
@@ -319,7 +348,6 @@ public class Implementor implements JarImpler {
      *  <ul>
      *  <li> Some arguments are <tt>null</tt></li>
      *  <li> Error occurs during implementation via {@link #implement(Class, Path)} </li>
-     *  <li> The process is not allowed to create files or directories. </li>
      *  <li> {@link JavaCompiler} failed to compile implemented class </li>
      *  <li> The problems with I/O occurred during implementation. </li>
      *  </ul>
@@ -334,28 +362,27 @@ public class Implementor implements JarImpler {
         } catch (IOException e) {
             throw new ImplerException("Unable to create temp directory", e);
         }
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        String[] args = new String[3];
-        args[0] = "-cp";
-        args[1] = tempDir.toString() + File.pathSeparator + System.getProperty("java.class.path");
-        args[2] = getFilePath(tempDir, token, JAVA).toString();
-        Manifest manifest = new Manifest();
-        Attributes attributes = manifest.getMainAttributes();
-        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        attributes.put(Attributes.Name.IMPLEMENTATION_VENDOR, "Lev Dovzhik");
-        try (JarOutputStream writer = new JarOutputStream(Files.newOutputStream(outputFile), manifest)) {
+        try {
             implement(token, tempDir);
-            if (compiler.run(null, null, null, args) != 0) {
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            String[] args = new String[]{
+                    "-cp",
+                    tempDir.toString() + File.pathSeparator + System.getProperty("java.class.path"),
+                    getFilePath(tempDir, token, JAVA).toString()
+            };
+            if (compiler == null || compiler.run(null, null, null, args) != 0) {
                 throw new ImplerException("Unable to compile generated files");
             }
-            try {
+            Manifest manifest = new Manifest();
+            Attributes attributes = manifest.getMainAttributes();
+            attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+            attributes.put(Attributes.Name.IMPLEMENTATION_VENDOR, "Lev Dovzhik");
+            try (JarOutputStream writer = new JarOutputStream(Files.newOutputStream(outputFile), manifest)) {
                 writer.putNextEntry(new ZipEntry(token.getName().replace('.', '/') + "Impl.class"));
                 Files.copy(getFilePath(tempDir, token, CLASS), writer);
             } catch (IOException e) {
                 throw new ImplerException("Unable to write to JAR file", e);
             }
-        } catch (IOException e) {
-            throw new ImplerException("Unable to create JAR file", e);
         } finally {
             try {
                 clean(tempDir);
@@ -407,9 +434,9 @@ public class Implementor implements JarImpler {
      * Returns list of exceptions, that given {@link Executable} may throw
      *
      * @param exec {@link Executable} to get exceptions from
-     * @return {@link StringBuilder} representing list of exceptions
+     * @return {@link String} representing list of exceptions
      */
-    private static StringBuilder getExceptions(Executable exec) {
+    private static String getExceptions(Executable exec) {
         StringBuilder res = new StringBuilder();
         Class<?>[] exceptions = exec.getExceptionTypes();
         if (exceptions.length > 0) {
@@ -419,7 +446,7 @@ public class Implementor implements JarImpler {
                 .map(Class::getCanonicalName)
                 .collect(Collectors.joining(COMMA + SPACE))
         );
-        return res;
+        return res.toString();
     }
 
     /**
@@ -457,9 +484,9 @@ public class Implementor implements JarImpler {
      * <tt>exec</tt> is instance of {@link Constructor}, otherwise returns default value of return type
      * of such {@link Method}
      * @param exec given {@link Constructor} or {@link Method}
-     * @return {@link StringBuilder} representing code of such {@link Executable}
+     * @return {@link String} representing code of such {@link Executable}
      */
-    private static StringBuilder getExecutable(Executable exec) {
+    private static String getExecutable(Executable exec) {
         StringBuilder res = new StringBuilder(getTabs(1));
         final int mods = exec.getModifiers() & ~Modifier.ABSTRACT & ~Modifier.NATIVE & ~Modifier.TRANSIENT;
         res.append(Modifier.toString(mods))
@@ -477,7 +504,7 @@ public class Implementor implements JarImpler {
                 .append(getTabs(1))
                 .append("}")
                 .append(EOLN);
-        return res;
+        return res.toString();
     }
 
     /**
@@ -509,7 +536,7 @@ public class Implementor implements JarImpler {
             token = token.getSuperclass();
         }
         for (MethodWrapper method : methods) {
-            writer.write(getExecutable(method.getInner()).toString());
+            writer.write(toUnicode(getExecutable(method.getInner())));
         }
     }
 
@@ -530,7 +557,7 @@ public class Implementor implements JarImpler {
             throw new ImplerException("No non-private constructors in class");
         }
         for (Constructor<?> constructor : constructors) {
-            writer.write(getExecutable(constructor).toString());
+            writer.write(toUnicode(getExecutable(constructor)));
         }
     }
 

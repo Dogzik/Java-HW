@@ -11,4 +11,4 @@ javac -d %dst% -cp %lib%;%test%; java\ru\ifmo\rain\dovzhik\implementor\Implement
 cd %dst%
 jar xf ..\..\..\%test% %dep%Impler.class %dep%JarImpler.class %dep%ImplerException.class
 jar cfm Implementor.jar %man% ru\ifmo\rain\dovzhik\implementor\*.class %dep%*.class
-rmdir info /s
+rmdir info /s /q
