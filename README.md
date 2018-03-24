@@ -7,17 +7,17 @@
 
 Тестирование
 
- * простой вериант:
-    ```info.kgeorgiy.java.advanced.concurrent.Tester list <полное имя класса>```
-
-  Класс должен реализовывать интерфейс
-  [ListIP](java/info/kgeorgiy/java/advanced/concurrent/ListIP.java).
-
- * сложный вериант:
+ * простой вариант:
     ```info.kgeorgiy.java.advanced.concurrent.Tester scalar <полное имя класса>```
 
   Класс должен реализовывать интерфейс
   [ScalarIP](java/info/kgeorgiy/java/advanced/concurrent/ScalarIP.java).
+
+ * сложный вариант:
+    ```info.kgeorgiy.java.advanced.concurrent.Tester list <полное имя класса>```
+
+  Класс должен реализовывать интерфейс
+  [ListIP](java/info/kgeorgiy/java/advanced/concurrent/ListIP.java).
 
 Исходный код тестов:
 
@@ -32,7 +32,7 @@
 
 Тестирование
 
- * простой вериант:
+ * простой вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester jar-interface <полное имя класса>```
  * сложный вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester jar-class <полное имя класса>```
@@ -50,9 +50,9 @@
 
 Тестирование
 
- * простой вериант:
+ * простой вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester interface <полное имя класса>```
- * сложный вериант:
+ * сложный вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester class <полное имя класса>```
 
 Исходный код тестов:
