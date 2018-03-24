@@ -3,7 +3,7 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
 
-## Домашнее задание 6. Итеративный параллелизм
+## Домашнее задание 7. Итеративный параллелизм
 
 Тестирование
 
@@ -25,7 +25,7 @@
 * [сложный вариант](java/info/kgeorgiy/java/advanced/concurrent/ListIPTest.java)
 
 
-# Домашнее задание 5. JarImplementor
+## Домашнее задание 5. JarImplementor
 
 Класс должен реализовывать интерфейс
 [JarImpler](java/info/kgeorgiy/java/advanced/implementor/JarImpler.java).
