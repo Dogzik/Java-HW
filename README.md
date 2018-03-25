@@ -3,14 +3,36 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
 
-# Домашнее задание 5. JarImplementor
+## Домашнее задание 7. Итеративный параллелизм
+
+Тестирование
+
+ * простой вариант:
+    ```info.kgeorgiy.java.advanced.concurrent.Tester scalar <полное имя класса>```
+
+  Класс должен реализовывать интерфейс
+  [ScalarIP](java/info/kgeorgiy/java/advanced/concurrent/ScalarIP.java).
+
+ * сложный вариант:
+    ```info.kgeorgiy.java.advanced.concurrent.Tester list <полное имя класса>```
+
+  Класс должен реализовывать интерфейс
+  [ListIP](java/info/kgeorgiy/java/advanced/concurrent/ListIP.java).
+
+Исходный код тестов:
+
+* [простой вариант](java/info/kgeorgiy/java/advanced/concurrent/ScalarIPTest.java)
+* [сложный вариант](java/info/kgeorgiy/java/advanced/concurrent/ListIPTest.java)
+
+
+## Домашнее задание 5. JarImplementor
 
 Класс должен реализовывать интерфейс
 [JarImpler](java/info/kgeorgiy/java/advanced/implementor/JarImpler.java).
 
 Тестирование
 
- * простой вериант:
+ * простой вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester jar-interface <полное имя класса>```
  * сложный вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester jar-class <полное имя класса>```
@@ -28,9 +50,9 @@
 
 Тестирование
 
- * простой вериант:
+ * простой вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester interface <полное имя класса>```
- * сложный вериант:
+ * сложный вариант:
     ```info.kgeorgiy.java.advanced.implementor.Tester class <полное имя класса>```
 
 Исходный код тестов:

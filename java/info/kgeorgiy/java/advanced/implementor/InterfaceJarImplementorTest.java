@@ -2,12 +2,14 @@ package info.kgeorgiy.java.advanced.implementor;
 
 import info.kgeorgiy.java.advanced.implementor.examples.lang.*;
 
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -35,6 +37,7 @@ public class InterfaceJarImplementorTest extends InterfaceImplementorTest {
     static void implementJar(final Path root, final Impler implementor, final Class<?> clazz) throws ImplerException {
         final Path jarFile = root.resolve(clazz.getName() + ".jar");
         ((JarImpler) implementor).implementJar(clazz, jarFile);
+        Assert.assertTrue("Jar file not found", Files.isRegularFile(jarFile));
         try (final URLClassLoader classLoader = getClassLoader(jarFile)) {
             check(classLoader, clazz);
         } catch (final IOException e) {
