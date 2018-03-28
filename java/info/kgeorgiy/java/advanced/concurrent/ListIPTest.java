@@ -31,5 +31,27 @@ public class ListIPTest extends ScalarIPTest<ListIP> {
         );
     }
 
+    @Test
+    public void test09_map() throws InterruptedException {
+        test((data, f) -> data.stream().map(f).collect(Collectors.toList()), ListIP::map, functions);
+    }
+
+    @Test
+    public void test10_mapMaximum() throws InterruptedException {
+        test(
+                (data, f) -> data.stream().map(f).map(Objects::toString).max(Comparator.naturalOrder()),
+                (instance, threads, data, f) -> {
+                    final List<String> mapped = instance.map(threads, data, f.andThen(Objects::toString));
+                    return Optional.of(instance.maximum(threads, mapped, Comparator.naturalOrder()));
+                },
+                functions
+        );
+    }
+
+    private final List<Named<Function<Integer, ?>>> functions = Arrays.asList(
+            new Named<>("* 2", v -> v * 2),
+            new Named<>("is even", v -> v % 2 == 0),
+            new Named<>("toString", Object::toString)
+    );
     private final List<Named<Void>> unit = Arrays.asList(new Named<>("Common", null));
 }
