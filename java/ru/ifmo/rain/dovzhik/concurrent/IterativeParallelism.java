@@ -18,20 +18,13 @@ public class IterativeParallelism implements ListIP {
         }
     }
 
-    private static void startThreads(final List<Thread> threads) {
-        for (Thread thread : threads) {
-            thread.start();
-        }
-    }
-
     private static <T, R> R baseTask(int threads, final List<? extends T> values,
                                      final Function<? super List<? extends T>, ? extends R> task,
                                      final Function<? super List<? extends R>, ? extends R> ansCollector)
             throws InterruptedException {
         if (threads <= 0) {
             throw new IllegalArgumentException("Number of threads must be positive");
-        }
-        if (values.isEmpty()) {
+        } else if (values.isEmpty()) {
             throw new IllegalArgumentException("Unable to handle empty list");
         }
         threads = Math.min(threads, values.size());
@@ -43,8 +36,8 @@ public class IterativeParallelism implements ListIP {
             final int r = (i == threads - 1) ? values.size() : (i + 1) * blockSize;
             final int pos = i;
             workers.set(i, new Thread(() -> res.set(pos, task.apply(values.subList(l, r)))));
+            workers.get(i).start();
         }
-        startThreads(workers);
         joinThreads(workers);
         return ansCollector.apply(res);
     }
@@ -64,7 +57,8 @@ public class IterativeParallelism implements ListIP {
     public <T> boolean all(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return baseTask(threads, values,
                 list -> list.stream().allMatch(predicate),
-                list -> list.stream().allMatch(elem -> elem));
+                list -> list.stream().allMatch(elem -> elem)
+        );
     }
 
     @Override
@@ -76,20 +70,23 @@ public class IterativeParallelism implements ListIP {
     public String join(int threads, List<?> values) throws InterruptedException {
         return baseTask(threads, values,
                 list -> list.stream().map(Object::toString).collect(Collectors.joining()),
-                list -> list.stream().collect(Collectors.joining()));
+                list -> list.stream().collect(Collectors.joining())
+        );
     }
 
     @Override
     public <T> List<T> filter(int threads, List<? extends T> values, Predicate<? super T> predicate) throws InterruptedException {
         return baseTask(threads, values,
                 list -> list.stream().filter(predicate).collect(Collectors.toList()),
-                list -> list.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+                list -> list.stream().flatMap(Collection::stream).collect(Collectors.toList())
+        );
     }
 
     @Override
     public <T, U> List<U> map(int threads, List<? extends T> values, Function<? super T, ? extends U> f) throws InterruptedException {
         return baseTask(threads, values,
                 list -> list.stream().map(f).collect(Collectors.toList()),
-                list -> list.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+                list -> list.stream().flatMap(Collection::stream).collect(Collectors.toList())
+        );
     }
 }
