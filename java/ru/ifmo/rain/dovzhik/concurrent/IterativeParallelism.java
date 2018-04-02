@@ -1,6 +1,7 @@
 package ru.ifmo.rain.dovzhik.concurrent;
 
 import info.kgeorgiy.java.advanced.concurrent.ListIP;
+import info.kgeorgiy.java.advanced.mapper.ParallelMapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,46 +13,52 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.addAndStart;
+import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.joinThreads;
+
 public class IterativeParallelism implements ListIP {
-    private static void joinThreads(final List<Thread> threads) throws InterruptedException {
-        InterruptedException exception = null;
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                if (exception == null) {
-                    exception = new InterruptedException("Not all threads joined");
-                }
-                exception.addSuppressed(e);
-            }
-        }
-        if (exception != null) {
-            throw exception;
-        }
+    private final ParallelMapper mapper;
+
+    public IterativeParallelism(ParallelMapper mapper) {
+        this.mapper = mapper;
     }
 
-    private static <T, R> R baseTask(int threads, final List<? extends T> values,
+    public IterativeParallelism() {
+        mapper = null;
+    }
+
+    private <T, R> R baseTask(int threads, final List<? extends T> values,
                                      final Function<? super Stream<? extends T>, ? extends R> task,
                                      final Function<? super Stream<? extends R>, ? extends R> ansCollector)
             throws InterruptedException {
         if (threads <= 0) {
             throw new IllegalArgumentException("Number of threads must be positive");
         }
+
         threads = Math.max(1, Math.min(threads, values.size()));
-        final List<Thread> workers = new ArrayList<>(Collections.nCopies(threads, null));
-        final List<R> res = new ArrayList<>(Collections.nCopies(threads, null));
+        final List<Stream<? extends T>> subTasks = new ArrayList<>();
         final int blockSize = values.size() / threads;
         int rest = values.size() % threads;
         int pr = 0;
         for (int i = 0; i < threads; i++) {
             final int l = pr;
             final int r = l + blockSize + (rest-- > 0 ? 1 : 0);
-            final int pos = i;
             pr = r;
-            workers.set(i, new Thread(() -> res.set(pos, task.apply(values.subList(l, r).stream()))));
-            workers.get(i).start();
+            subTasks.add(values.subList(l, r).stream());
         }
-        joinThreads(workers);
+
+        List<R> res;
+        if (mapper != null) {
+            res = mapper.map(task, subTasks);
+        } else {
+            final List<Thread> workers = new ArrayList<>();
+            res = new ArrayList<>(Collections.nCopies(threads, null));
+            for (int i = 0; i < threads; i++) {
+                final int pos = i;
+                addAndStart(workers, new Thread(() -> res.set(pos, task.apply(subTasks.get(pos)))));
+            }
+            joinThreads(workers);
+        }
         return ansCollector.apply(res.stream());
     }
 
