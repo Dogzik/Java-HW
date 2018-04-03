@@ -15,17 +15,18 @@ import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.joinThreadsUninter
 public class ParallelMapperImpl implements ParallelMapper {
     private final Queue<Runnable> tasks;
     private final List<Thread> workers;
-    private final static int MAX_SIZE = 1000_000;
-
+    private final static int MAX_SIZE = 1_000_000;
 
     private void solveTask() throws InterruptedException {
+        Runnable task;
         synchronized (tasks) {
             while (tasks.isEmpty()) {
                 tasks.wait();
             }
-            tasks.poll().run();
+            task = tasks.poll();
             tasks.notify();
         }
+        task.run();
     }
 
     private void addTask(final Runnable task) throws InterruptedException {
@@ -39,8 +40,8 @@ public class ParallelMapperImpl implements ParallelMapper {
     }
 
     private class ResultCollector<R> {
-        List<R> res;
-        int cnt;
+        private final List<R> res;
+        private int cnt;
 
         ResultCollector(final int size) {
             res = new ArrayList<>(Collections.nCopies(size, null));
