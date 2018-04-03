@@ -39,11 +39,9 @@ public class IterativeParallelism implements ListIP {
         final List<Stream<? extends T>> subTasks = new ArrayList<>();
         final int blockSize = values.size() / threads;
         int rest = values.size() % threads;
-        int pr = 0;
-        for (int i = 0; i < threads; i++) {
-            final int l = pr;
-            final int r = l + blockSize + (rest-- > 0 ? 1 : 0);
-            pr = r;
+        for (int i = 0, r = 0; i < threads; i++) {
+            final int l = r;
+            r = l + blockSize + (rest-- > 0 ? 1 : 0);
             subTasks.add(values.subList(l, r).stream());
         }
 

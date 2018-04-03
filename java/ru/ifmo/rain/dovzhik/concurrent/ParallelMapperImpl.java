@@ -24,18 +24,18 @@ public class ParallelMapperImpl implements ParallelMapper {
                 tasks.wait();
             }
             task = tasks.poll();
-            tasks.notify();
+            tasks.notifyAll();
         }
         task.run();
     }
 
     private void addTask(final Runnable task) throws InterruptedException {
         synchronized (tasks) {
-            while (tasks.size() >= MAX_SIZE) {
+            while (tasks.size() == MAX_SIZE) {
                 tasks.wait();
             }
             tasks.add(task);
-            tasks.notify();
+            tasks.notifyAll();
         }
     }
 
