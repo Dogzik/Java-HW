@@ -3,7 +3,7 @@ package ru.ifmo.rain.dovzhik.concurrent;
 import java.util.List;
 
 class ConcurrentUtils {
-    static void addAndStart(List<Thread> workers, Thread thread) {
+    static void addAndStart(final List<Thread> workers, final Thread thread) {
         workers.add(thread);
         thread.start();
     }
@@ -29,7 +29,14 @@ class ConcurrentUtils {
         for (Thread thread : threads) {
             try {
                 thread.join();
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
+    static void checkThread(final int threads) throws IllegalArgumentException {
+        if (threads <= 0) {
+            throw new IllegalArgumentException("Number of threads must be positive");
         }
     }
 }

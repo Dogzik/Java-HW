@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.function.Function;
 
 import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.addAndStart;
+import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.checkThread;
 import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.joinThreadsUninterruptedly;
 
 public class ParallelMapperImpl implements ParallelMapper {
@@ -66,6 +67,7 @@ public class ParallelMapperImpl implements ParallelMapper {
     }
 
     public ParallelMapperImpl(final int threads) {
+        checkThread(threads);
         tasks = new ArrayDeque<>();
         workers = new ArrayList<>();
         for (int i = 0; i < threads; i++) {
