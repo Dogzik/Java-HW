@@ -34,7 +34,7 @@ class ConcurrentUtils {
         }
     }
 
-    static void checkThread(final int threads) throws IllegalArgumentException {
+    static void checkThreads(final int threads) throws IllegalArgumentException {
         if (threads <= 0) {
             throw new IllegalArgumentException("Number of threads must be positive");
         }

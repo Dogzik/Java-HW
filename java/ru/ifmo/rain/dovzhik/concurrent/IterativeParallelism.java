@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.addAndStart;
-import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.checkThread;
+import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.checkThreads;
 import static ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils.joinThreads;
 
 public class IterativeParallelism implements ListIP {
@@ -32,7 +32,7 @@ public class IterativeParallelism implements ListIP {
                               final Function<? super Stream<? extends T>, ? extends R> task,
                               final Function<? super Stream<? extends R>, ? extends R> ansCollector)
             throws InterruptedException {
-        checkThread(threads);
+        checkThreads(threads);
 
         threads = Math.max(1, Math.min(threads, values.size()));
         final List<Stream<? extends T>> subTasks = new ArrayList<>();
