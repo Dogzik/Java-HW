@@ -4,6 +4,7 @@ import info.kgeorgiy.java.advanced.concurrent.ListIP;
 import info.kgeorgiy.java.advanced.concurrent.ListIPTest;
 import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.util.Arrays;
@@ -15,6 +16,11 @@ import java.util.Arrays;
 public class ListMapperTest extends ListIPTest {
     public ListMapperTest() {
         factors = Arrays.asList(1, 2, 5, 10);
+    }
+
+    @Test
+    public void test05_sleepPerformance() throws InterruptedException {
+        new ScalarMapperTest().test05_sleepPerformance();
     }
 
     @Override
