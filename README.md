@@ -3,6 +3,22 @@
 [Условия домашних заданий](http://www.kgeorgiy.info/courses/java-advanced/homeworks.html)
 
 
+## Домашнее задание 9. Web Crawler
+
+Тестирование
+
+ * простой вариант:
+    ```info.kgeorgiy.java.advanced.crawler.Tester easy <полное имя класса>```
+ * сложный вариант:
+    ```info.kgeorgiy.java.advanced.crawler.Tester hard <полное имя класса>```
+
+Исходный код тестов:
+
+* [интерфейсы и вспомогательные классы](java/info/kgeorgiy/java/advanced/crawler/)
+* [простой вариант](java/info/kgeorgiy/java/advanced/crawler/CrawlerEasyTest.java)
+* [сложный вариант](java/info/kgeorgiy/java/advanced/crawler/CrawlerHardTest.java)
+
+
 ## Домашнее задание 8. Параллельный запуск
 
 Тестирование
