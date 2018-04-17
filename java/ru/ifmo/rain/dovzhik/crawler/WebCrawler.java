@@ -47,6 +47,22 @@ public class WebCrawler implements Crawler {
         parsedPages = new ConcurrentHashMap<>();
     }
 
+    public WebCrawler(int downloaders, int extractors, int perHost) throws IOException {
+        this(new CachingDownloader(), downloaders, extractors, perHost);
+    }
+
+    public WebCrawler(int downloaders, int extractors) throws IOException {
+        this(downloaders, extractors, 10);
+    }
+
+    public WebCrawler(int downloaders) throws IOException {
+        this(downloaders, 16);
+    }
+
+    public WebCrawler() throws IOException {
+        this(16);
+    }
+
     private Document downloadPage(final String url) throws IOException {
         Semaphore semaphore = null;
         try {
@@ -168,8 +184,8 @@ public class WebCrawler implements Crawler {
     }
 
     public static void main(String[] args) {
-        if (args == null || args.length != 5) {
-            System.out.println("5 arguments expected");
+        if (args == null || args.length < 2 || args.length > 5) {
+            System.out.println("From 2 to 5 arguments expected");
             return;
         }
         for (final String arg : args) {
@@ -177,12 +193,25 @@ public class WebCrawler implements Crawler {
                 System.out.println("non-null arguments expected");
             }
         }
-        try (WebCrawler crawler = new WebCrawler(new CachingDownloader(), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]))) {
+        int[] bounds = new int[args.length - 2];
+
+        try {
+            for (int i = 2; i < args.length; i++) {
+                bounds[i - 2] = Integer.parseInt(args[i]);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("The integer numbers expected in the bounds arguments: " + e.getMessage());
+            return;
+        }
+        try (WebCrawler crawler = (bounds.length == 3) ? new WebCrawler(bounds[0], bounds[1], bounds[2])
+                             : (bounds.length == 2) ? new WebCrawler(bounds[0], bounds[1])
+                             : (bounds.length == 1) ? new WebCrawler(bounds[0])
+                             : new WebCrawler()) {
             crawler.download(args[0], Integer.parseInt(args[1]));
         } catch (IOException e) {
             System.out.println("Unable to create instance of CachingDownloader: " + e.getMessage());
         } catch (NumberFormatException e) {
-            System.out.println("The integer number expected in the argument: " + e.getMessage());
+            System.out.println("The integer number expected in the depth argument: " + e.getMessage());
         }
     }
 }
