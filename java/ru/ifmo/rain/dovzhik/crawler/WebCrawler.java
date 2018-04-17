@@ -120,12 +120,18 @@ public class WebCrawler implements Crawler {
         }
     }
 
+    private static void swapQueues(Queue<String> a, Queue<String> b) {
+        Queue<String> tmp = a;
+        a = b;
+        b = tmp;
+    }
+
     @Override
     public Result download(String url, int depth) {
         final Set<String> good = Collections.newSetFromMap(new ConcurrentHashMap<>());
         final Map<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> visited = new HashSet<>();
-        final Queue<String> tmp = new ArrayDeque<>(depth);
+        Queue<String> tmp = new ArrayDeque<>(depth);
         Queue<String> que = new ArrayDeque<>(depth);
         que.add(url);
         visited.add(url);
@@ -144,7 +150,7 @@ public class WebCrawler implements Crawler {
                             visited.add(link);
                         }
                     });
-            que = tmp;
+            swapQueues(que, tmp);
             ++curDepth;
         }
         if (!que.isEmpty()) {
