@@ -1,5 +1,6 @@
 package ru.ifmo.rain.dovzhik.crawler;
 
+import info.kgeorgiy.java.advanced.crawler.CachingDownloader;
 import info.kgeorgiy.java.advanced.crawler.Crawler;
 import info.kgeorgiy.java.advanced.crawler.Document;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
@@ -45,7 +46,6 @@ public class WebCrawler implements Crawler {
         downloadedPages = new ConcurrentHashMap<>();
         parsedPages = new ConcurrentHashMap<>();
     }
-
 
     private Document downloadPage(final String url) throws IOException {
         Semaphore semaphore = null;
@@ -161,5 +161,24 @@ public class WebCrawler implements Crawler {
     public void close() {
         downloadersPool.shutdown();
         extractorsPool.shutdown();
+    }
+
+    public static void main(String[] args) {
+        if (args == null || args.length != 5) {
+            System.out.println("5 arguments expected");
+            return;
+        }
+        for (final String arg : args) {
+            if (arg == null) {
+                System.out.println("non-null arguments expected");
+            }
+        }
+        try (WebCrawler crawler = new WebCrawler(new CachingDownloader(), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]))) {
+            crawler.download(args[0], Integer.parseInt(args[1]));
+        } catch (IOException e) {
+            System.out.println("Unable to create instance of CachingDownloader: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("The integer number expected in the argument: " + e.getMessage());
+        }
     }
 }
