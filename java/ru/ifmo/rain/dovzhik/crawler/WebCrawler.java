@@ -4,16 +4,14 @@ import info.kgeorgiy.java.advanced.crawler.Crawler;
 import info.kgeorgiy.java.advanced.crawler.Document;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
 import info.kgeorgiy.java.advanced.crawler.Result;
+import info.kgeorgiy.java.advanced.crawler.URLUtils;
 import javafx.util.Pair;
-import jdk.nashorn.internal.codegen.CompilerConstants;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,15 +20,14 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static info.kgeorgiy.java.advanced.crawler.URLUtils.getHost;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class WebCrawler implements Crawler {
     private final Downloader downloader;
@@ -46,8 +43,8 @@ public class WebCrawler implements Crawler {
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
         this.downloader = downloader;
         this.perHost = perHost;
-        downloadersPool = newFixedThreadPool(downloaders);
-        extractorsPool = newFixedThreadPool(extractors);
+        downloadersPool = Executors.newFixedThreadPool(downloaders);
+        extractorsPool = Executors.newFixedThreadPool(extractors);
         hosts = new ConcurrentHashMap<>();
         downloadedPages = new ConcurrentHashMap<>();
         parsedPages = new ConcurrentHashMap<>();
@@ -57,7 +54,7 @@ public class WebCrawler implements Crawler {
     private Document downloadPage(final String url) throws IOException {
         Semaphore semaphore = null;
         try {
-            final String host = getHost(url);
+            final String host = URLUtils.getHost(url);
             hosts.putIfAbsent(host, new Semaphore(perHost));
             semaphore = hosts.get(host);
             semaphore.acquireUninterruptibly();
@@ -71,7 +68,7 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private Optional<Document> getPage(final String url, final Queue<String> good, final Map<String, IOException> bad) {
+    private Optional<Document> getPage(final String url, final Set<String> good, final Map<String, IOException> bad) {
         Document res = null;
         if (!downloadedPages.containsKey(url)) {
             try {
@@ -107,8 +104,12 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private Callable<List<String>> toCallable(final Pair<String, Future<Optional<Document>>> data) {
+    private Callable<List<String>> toCallableLinks(final Pair<String, Future<Optional<Document>>> data) {
         return () -> getLinks(data);
+    }
+
+    private Callable<Optional<Document>> toCallablePage(final String url, final Set<String> good, final Map<String, IOException> bad) {
+        return () -> getPage(url, good, bad);
     }
 
     private static List<String> safeGet(final Future<List<String>> elem) {
@@ -121,38 +122,41 @@ public class WebCrawler implements Crawler {
 
     @Override
     public Result download(String url, int depth) {
-        final Queue<String> good = new ConcurrentLinkedDeque<>();
+        final Set<String> good = Collections.newSetFromMap(new ConcurrentHashMap<>());
         final Map<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> visited = new HashSet<>();
-        final Queue<String> que = new ArrayDeque<>(depth);
+        final Queue<String> tmp = new ArrayDeque<>(depth);
+        Queue<String> que = new ArrayDeque<>(depth);
         que.add(url);
         visited.add(url);
         int curDepth = 1;
-        while (!que.isEmpty() && curDepth <= depth) {
-            Queue<Pair<String, Future<Optional<Document>>>> docs = new ArrayDeque<>(que.size());
-            que.forEach((page) -> docs.add(new Pair<>(page, downloadersPool.submit(() -> getPage(page, good, bad)))));
-            que.clear();
-            if (curDepth < depth) {
-                try {
-                    extractorsPool.invokeAll(docs.stream().map(this::toCallable).collect(Collectors.toList()))
-                            .stream().map(WebCrawler::safeGet).flatMap(Collection::stream)
-                            .forEach(link -> {
-                                if (!visited.contains(link)) {
-                                    que.add(link);
-                                    visited.add(link);
-                                }
-                            });
-                } catch (InterruptedException ignored) {
-                }
-            } else {
-                docs.forEach((elem) -> {
-                    try {
-                        elem.getValue().get();
-                    } catch (ExecutionException | InterruptedException ignored) {
-                    }
-                });
-            }
+        while (!que.isEmpty() && curDepth < depth) {
+            tmp.clear();
+            que.stream()
+                    .map((link) -> new Pair<>(link, downloadersPool.submit(() -> getPage(link, good, bad))))
+                    .map(this::toCallableLinks)
+                    .map(extractorsPool::submit)
+                    .map(WebCrawler::safeGet)
+                    .flatMap(Collection::stream)
+                    .forEach(link -> {
+                        if (!visited.contains(link)) {
+                            tmp.add(link);
+                            visited.add(link);
+                        }
+                    });
+            que = tmp;
             ++curDepth;
+        }
+        if (!que.isEmpty()) {
+            que.stream()
+                    .map((link) -> toCallablePage(link, good, bad))
+                    .map(downloadersPool::submit)
+                    .forEach((elem) -> {
+                        try {
+                            elem.get();
+                        } catch (ExecutionException | InterruptedException ignored) {
+                        }
+                    });
         }
         return new Result(new ArrayList<>(good), bad);
     }
