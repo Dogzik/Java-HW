@@ -6,6 +6,7 @@ import info.kgeorgiy.java.advanced.crawler.Downloader;
 import info.kgeorgiy.java.advanced.crawler.Result;
 import info.kgeorgiy.java.advanced.crawler.URLUtils;
 import javafx.util.Pair;
+import org.jsoup.select.Collector;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -130,33 +131,40 @@ public class WebCrawler implements Crawler {
         visited.add(url);
         int curDepth = 1;
         while (!que.isEmpty() && curDepth < depth) {
-            que.stream()
-                    .map((link) -> new Pair<>(link, downloadersPool.submit(() -> getPage(link, good, bad))))
-                    .map(this::toCallableLinks)
-                    .map(extractorsPool::submit)
-                    .map(WebCrawler::safeGet)
-                    .flatMap(Collection::stream)
-                    .forEach(link -> {
-                        if (!visited.contains(link)) {
-                            tmp.add(link);
-                            visited.add(link);
-                        }
-                    });
+            try {
+                extractorsPool.invokeAll(que.stream()
+                        .map((link) -> new Pair<>(link, downloadersPool.submit(() -> getPage(link, good, bad))))
+                        .map(this::toCallableLinks)
+                        .collect(Collectors.toList())
+                ).stream()
+                        .map(WebCrawler::safeGet)
+                        .flatMap(Collection::stream)
+                        .forEach(link -> {
+                            if (!visited.contains(link)) {
+                                tmp.add(link);
+                                visited.add(link);
+                            }
+                        });
+            } catch (InterruptedException ignored) {
+            }
             que.clear();
             que.addAll(tmp);
             tmp.clear();
             ++curDepth;
         }
         if (!que.isEmpty()) {
-            que.stream()
-                    .map((link) -> toCallablePage(link, good, bad))
-                    .map(downloadersPool::submit)
-                    .forEach((elem) -> {
-                        try {
-                            elem.get();
-                        } catch (ExecutionException | InterruptedException ignored) {
-                        }
-                    });
+            try {
+                downloadersPool.invokeAll(que.stream().
+                        map((link) -> toCallablePage(link, good, bad))
+                        .collect(Collectors.toList())
+                ).forEach((elem) -> {
+                    try {
+                        elem.get();
+                    } catch (ExecutionException | InterruptedException ignored) {
+                    }
+                });
+            } catch (InterruptedException ignored) {
+            }
         }
         return new Result(new ArrayList<>(good), bad);
     }
