@@ -39,7 +39,6 @@ public class WebCrawler implements Crawler {
     private final ConcurrentHashMap<String, Document> downloadedPages;
     private final ConcurrentHashMap<String, List<String>> parsedPages;
 
-
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
         this.downloader = downloader;
         this.perHost = perHost;
@@ -120,24 +119,17 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private static void swapQueues(Queue<String> a, Queue<String> b) {
-        Queue<String> tmp = a;
-        a = b;
-        b = tmp;
-    }
-
     @Override
     public Result download(String url, int depth) {
         final Set<String> good = Collections.newSetFromMap(new ConcurrentHashMap<>());
         final Map<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> visited = new HashSet<>();
-        Queue<String> tmp = new ArrayDeque<>(depth);
-        Queue<String> que = new ArrayDeque<>(depth);
+        final Queue<String> tmp = new ArrayDeque<>(depth);
+        final Queue<String> que = new ArrayDeque<>(depth);
         que.add(url);
         visited.add(url);
         int curDepth = 1;
         while (!que.isEmpty() && curDepth < depth) {
-            tmp.clear();
             que.stream()
                     .map((link) -> new Pair<>(link, downloadersPool.submit(() -> getPage(link, good, bad))))
                     .map(this::toCallableLinks)
@@ -150,7 +142,9 @@ public class WebCrawler implements Crawler {
                             visited.add(link);
                         }
                     });
-            swapQueues(que, tmp);
+            que.clear();
+            que.addAll(tmp);
+            tmp.clear();
             ++curDepth;
         }
         if (!que.isEmpty()) {
