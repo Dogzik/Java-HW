@@ -154,8 +154,8 @@ public class WebCrawler implements Crawler {
         }
         if (!que.isEmpty()) {
             try {
-                downloadersPool.invokeAll(que.stream().
-                        map((link) -> toCallablePage(link, good, bad))
+                downloadersPool.invokeAll(que.stream()
+                        .map((link) -> toCallablePage(link, good, bad))
                         .collect(Collectors.toList())
                 ).forEach((elem) -> {
                     try {
