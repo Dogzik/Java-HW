@@ -33,9 +33,9 @@ public class WebCrawler implements Crawler {
 
     private final ExecutorService downloadersPool;
     private final ExecutorService extractorsPool;
-    private final ConcurrentHashMap<String, Semaphore> hosts;
-    private final ConcurrentHashMap<String, Document> downloadedPages;
-    private final ConcurrentHashMap<String, List<String>> parsedPages;
+    private final Map<String, Semaphore> hosts;
+    private final Map<String, Document> downloadedPages;
+    private final Map<String, List<String>> parsedPages;
 
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
         this.downloader = downloader;
@@ -81,21 +81,25 @@ public class WebCrawler implements Crawler {
     }
 
     private List<String> getLinks(final String url, final Future<Optional<Document>> page) {
+        List<String> res;
         if (!parsedPages.containsKey(url)) {
             try {
-                return page.get().map((doc) -> {
+                res =  page.get().map((doc) -> {
                     try {
-                        return doc.extractLinks();
+                        List<String> tmp = doc.extractLinks();
+                        parsedPages.putIfAbsent(url, tmp);
+                        return tmp;
                     } catch (IOException e) {
                         return null;
                     }
                 }).orElse(Collections.emptyList());
             } catch (InterruptedException | ExecutionException e) {
-                return Collections.emptyList();
+                res = Collections.emptyList();
             }
         } else {
-            return parsedPages.get(url);
+            res = parsedPages.get(url);
         }
+        return res;
     }
 
     private Callable<List<String>> toCallableLinks(final String url, final Future<Optional<Document>> page) {
