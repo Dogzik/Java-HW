@@ -5,8 +5,6 @@ import info.kgeorgiy.java.advanced.crawler.Document;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
 import info.kgeorgiy.java.advanced.crawler.Result;
 import info.kgeorgiy.java.advanced.crawler.URLUtils;
-import javafx.util.Pair;
-import org.jsoup.select.Collector;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -26,9 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
 
 public class WebCrawler implements Crawler {
     private final Downloader downloader;
@@ -84,9 +80,7 @@ public class WebCrawler implements Crawler {
         return Optional.ofNullable(res);
     }
 
-    private List<String> getLinks(final Pair<String, Future<Optional<Document>>> data) {
-        final String url = data.getKey();
-        final Future<Optional<Document>> page = data.getValue();
+    private List<String> getLinks(final String url, final Future<Optional<Document>> page) {
         if (!parsedPages.containsKey(url)) {
             try {
                 return page.get().map((doc) -> {
@@ -104,15 +98,15 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private Callable<List<String>> toCallableLinks(final Pair<String, Future<Optional<Document>>> data) {
-        return () -> getLinks(data);
+    private Callable<List<String>> toCallableLinks(final String url, final Future<Optional<Document>> page) {
+        return () -> getLinks(url, page);
     }
 
     private Callable<Optional<Document>> toCallablePage(final String url, final Set<String> good, final Map<String, IOException> bad) {
         return () -> getPage(url, good, bad);
     }
 
-    private static List<String> safeGet(final Future<List<String>> elem) {
+    private static List<String> safeGetLinks(final Future<List<String>> elem) {
         try {
             return elem.get();
         } catch (ExecutionException | InterruptedException e) {
@@ -132,11 +126,10 @@ public class WebCrawler implements Crawler {
         int curDepth = 1;
         while (!que.isEmpty() && curDepth < depth) {
             que.stream()
-                    .map((link) -> new Pair<>(link, downloadersPool.submit(() -> getPage(link, good, bad))))
-                    .map(this::toCallableLinks)
+                    .map(link -> toCallableLinks(link, downloadersPool.submit(() -> getPage(link, good, bad))))
                     .map(extractorsPool::submit)
                     .collect(Collectors.toList()).stream()
-                    .map(WebCrawler::safeGet)
+                    .map(WebCrawler::safeGetLinks)
                     .flatMap(Collection::stream)
                     .forEach(link -> {
                         if (!visited.contains(link)) {
@@ -151,7 +144,7 @@ public class WebCrawler implements Crawler {
         }
         if (!que.isEmpty()) {
             que.stream()
-                    .map((link) -> toCallablePage(link, good, bad))
+                    .map(link -> toCallablePage(link, good, bad))
                     .map(downloadersPool::submit)
                     .collect(Collectors.toList())
                     .forEach((elem) -> {
