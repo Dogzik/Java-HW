@@ -32,6 +32,38 @@ public class CrawlerEasyTest extends BaseTest {
         test("http://www.kgeorgiy.info", 4);
     }
 
+    @Test
+    public void test04_shallow() throws IOException {
+        test("http://www.kgeorgiy.info", 2);
+    }
+
+    @Test
+    public void test05_noLimits() throws IOException {
+        test(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, 10, 10);
+    }
+
+    @Test
+    public void test06_limitDownloads() throws IOException {
+        test(10, Integer.MAX_VALUE, Integer.MAX_VALUE, 300, 10);
+    }
+
+    @Test
+    public void test07_limitExtractors() throws IOException {
+        test(Integer.MAX_VALUE, 10, Integer.MAX_VALUE, 10, 300);
+    }
+
+    @Test
+    public void test08_limitBoth() throws IOException {
+        test(10, 10, Integer.MAX_VALUE, 300, 300);
+    }
+
+    @Test
+    public void test09_performance() throws IOException {
+        final long time = test(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, 1000, 1000);
+        System.out.println("Time: " + time);
+        Assert.assertTrue("Not parallel", time < 6000);
+    }
+
     private void test(final String url, final int depth) throws IOException {
         test(url, depth, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, 10, 10);
     }
