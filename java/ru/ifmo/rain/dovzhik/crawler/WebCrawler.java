@@ -136,7 +136,7 @@ public class WebCrawler implements Crawler {
 
     @Override
     public Result download(String url, int depth) {
-        final Set<String> good = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        final Set<String> good = ConcurrentHashMap.newKeySet();
         final Map<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> visited = new HashSet<>();
         final Queue<String> tmp = new ArrayDeque<>(depth);
@@ -179,8 +179,8 @@ public class WebCrawler implements Crawler {
 
     @Override
     public void close() {
-        downloadersPool.shutdown();
-        extractorsPool.shutdown();
+        downloadersPool.shutdownNow();
+        extractorsPool.shutdownNow();
     }
 
     public static void main(String[] args) {
