@@ -1,21 +1,18 @@
 package ru.ifmo.rain.dovzhik.crawler;
 
-import info.kgeorgiy.java.advanced.crawler.CachingDownloader;
 import info.kgeorgiy.java.advanced.crawler.Document;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
 import info.kgeorgiy.java.advanced.crawler.URLUtils;
-import org.jsoup.select.Collector;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Reader;
 import java.io.SequenceInputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.file.Files;
@@ -28,7 +25,8 @@ import java.util.stream.Collectors;
 
 public class HostCachedDownloader implements Downloader {
     private final String host;
-    private final Predicate<String> checker;
+    private final Predicate<String> downloadChecker;
+    private final Predicate<String> processChecker;
     private final BiConsumer<String, String> pageHandler;
 
     private static final byte[] OK_MARKER = {'+'};
@@ -36,10 +34,13 @@ public class HostCachedDownloader implements Downloader {
 
     private final Path directory;
 
-    HostCachedDownloader(final String dir, final String host, final Predicate<String> checker, BiConsumer<String, String> pageHandler) throws IOException {
+    HostCachedDownloader(final String dir, final String host,
+                         final Predicate<String> dc, Predicate<String> pc,
+                         BiConsumer<String, String> pageHandler) throws IOException {
         this.host = host;
-        this.directory = Paths.get(dir);
-        this.checker = checker;
+        directory = Paths.get(dir);
+        downloadChecker = dc;
+        processChecker = pc;
         this.pageHandler = pageHandler;
         if (!Files.exists(directory)) {
             Files.createDirectories(directory);
@@ -52,13 +53,8 @@ public class HostCachedDownloader implements Downloader {
 
     private boolean downloadablePage(final String url) {
         try {
-            return URLUtils.getHost(url).equals(host)
-                    && (checker.test(url)
-                    || url.contains("e.lanbook.com/books/917")
-                    || url.contains("e.lanbook.com/books/918")
-                    || url.contains("e.lanbook.com/books/1537")
-                    || url.endsWith("e.lanbook.com/books"));
-        } catch (IOException e) {
+            return URLUtils.getHost(url).equals(host) && downloadChecker.test(url);
+        } catch (MalformedURLException e) {
             return false;
         }
     }
@@ -115,7 +111,7 @@ public class HostCachedDownloader implements Downloader {
             }
         }
 
-        if (checker.test(url)) {
+        if (processChecker.test(url)) {
             try (final BufferedReader is = Files.newBufferedReader(file)){
                 if (!(is.read() == FAIL_MARKER[0])) {
                     pageHandler.accept(url, is.lines().collect(Collectors.joining()));

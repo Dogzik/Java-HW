@@ -15,7 +15,7 @@ public class BookAdder implements BiConsumer<String, String> {
         if (clean.contains("fizika_0\">Физика<")
                 || clean.contains("matematika_0\">Математика<")
                 || clean.contains("informatika_0\">Информатика<")) {
-            for (int i = 2013; i <= 2018; i++) {
+            for (int i = 2014; i <= 2018; i++) {
                 if (clean.contains("<dt>Год:</dt><dd>" + Integer.toString(i) + "</dd>")) {
                     return true;
                 }

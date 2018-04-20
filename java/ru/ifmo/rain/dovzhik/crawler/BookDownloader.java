@@ -25,28 +25,29 @@ public class BookDownloader {
             return;
         }
         final Set<String> books = ConcurrentHashMap.newKeySet();
-        final Predicate<String> checker = new BookPredicate();
+        final Predicate<String> bookPage = new BookPredicate();
+        final Predicate<String> isBook = link -> link.contains("e.lanbook.com/book/");
         final BiConsumer<String, String> handler = new BookAdder(books);
         final Downloader downloader;
         try {
-            downloader = new HostCachedDownloader("tempPages", host, checker, handler);
+            downloader = new HostCachedDownloader("tempPages", host, bookPage, isBook , handler);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.err.println("Can't create downloader: " + e.getMessage());
             return;
         }
         try (final Crawler crawler = new WebCrawler(downloader, 40, 40, 40)) {
-            crawler.download("https://e.lanbook.com/books", 40);
+            crawler.download("https://e.lanbook.com/books", 30);
             try (final BufferedWriter out = new BufferedWriter(Files.newBufferedWriter(Paths.get("books.txt")))){
                 books.stream().sorted().forEach(book -> {
                     try {
                         out.write(book + System.lineSeparator());
                     } catch (IOException e) {
-                        System.err.println("Unable to write url\n");
+                        System.err.println("Unable to write book url");
                     }
                 });
+            } catch (IOException e) {
+                System.err.println("Unable to create output file " + e.getMessage());
             }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
         }
     }
 }
