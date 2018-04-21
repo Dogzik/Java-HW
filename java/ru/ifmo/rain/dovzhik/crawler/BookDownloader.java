@@ -4,7 +4,6 @@ import info.kgeorgiy.java.advanced.crawler.Crawler;
 import info.kgeorgiy.java.advanced.crawler.Downloader;
 import info.kgeorgiy.java.advanced.crawler.URLUtils;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -35,7 +34,7 @@ public class BookDownloader {
             System.err.println("Can't create downloader: " + e.getMessage());
             return;
         }
-        try (final Crawler crawler = new WebCrawler(downloader, 40, 40, 40)) {
+        try (final Crawler crawler = new WebCrawler(downloader, 16, 16, 40)) {
             crawler.download("https://e.lanbook.com/books", 30);
             try (final BufferedWriter out = new BufferedWriter(Files.newBufferedWriter(Paths.get("books.txt")))){
                 books.stream().sorted().forEach(book -> {

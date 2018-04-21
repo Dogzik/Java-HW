@@ -65,8 +65,7 @@ public class HostCachedDownloader implements Downloader {
             return url;
         }
         final String core = url.substring(0, barrier);
-        final String data = url.substring(barrier + 1);
-        final String[] flags = data.split("&");
+        final String[] flags = url.substring(barrier + 1).split("&");
         for (final String flag : flags) {
             if (flag.matches("page=\\d+")) {
                 return core + "?" + flag;
@@ -78,7 +77,7 @@ public class HostCachedDownloader implements Downloader {
     @Override
     public Document download(String url) throws IOException {
         if (!downloadablePage(url)) {
-            throw new IOException("Wrong host");
+            throw new IOException("Wrong URL");
         }
         final URI uri = URLUtils.getURI(url);
         final Path file = directory.resolve(URLEncoder.encode(uri.toString(), "UTF-8"));

@@ -52,7 +52,7 @@ public class WebCrawler implements Crawler {
     }
 
     public WebCrawler(int downloaders, int extractors) throws IOException {
-        this(downloaders, extractors, 10);
+        this(downloaders, extractors, 20);
     }
 
     public WebCrawler(int downloaders) throws IOException {
@@ -100,7 +100,7 @@ public class WebCrawler implements Crawler {
         List<String> res;
         if (!parsedPages.containsKey(url)) {
             try {
-                res =  page.get().map((doc) -> {
+                res = page.get().map(doc -> {
                     try {
                         List<String> tmp = doc.extractLinks();
                         parsedPages.putIfAbsent(url, tmp);
@@ -145,6 +145,7 @@ public class WebCrawler implements Crawler {
         visited.add(url);
         int curDepth = 1;
         while (!que.isEmpty() && curDepth < depth) {
+            tmp.clear();
             que.stream()
                     .map(link -> toCallableLinks(link, downloadersPool.submit(() -> getPage(link, good, bad))))
                     .map(extractorsPool::submit)
@@ -159,7 +160,6 @@ public class WebCrawler implements Crawler {
                     });
             que.clear();
             que.addAll(tmp);
-            tmp.clear();
             ++curDepth;
         }
         if (!que.isEmpty()) {
@@ -167,7 +167,7 @@ public class WebCrawler implements Crawler {
                     .map(link -> toCallablePage(link, good, bad))
                     .map(downloadersPool::submit)
                     .collect(Collectors.toList())
-                    .forEach((elem) -> {
+                    .forEach(elem -> {
                         try {
                             elem.get();
                         } catch (ExecutionException | InterruptedException ignored) {
@@ -204,9 +204,9 @@ public class WebCrawler implements Crawler {
             return;
         }
         try (WebCrawler crawler = (bounds.length == 3) ? new WebCrawler(bounds[0], bounds[1], bounds[2])
-                             : (bounds.length == 2) ? new WebCrawler(bounds[0], bounds[1])
-                             : (bounds.length == 1) ? new WebCrawler(bounds[0])
-                             : new WebCrawler()) {
+                : (bounds.length == 2) ? new WebCrawler(bounds[0], bounds[1])
+                : (bounds.length == 1) ? new WebCrawler(bounds[0])
+                : new WebCrawler()) {
             crawler.download(args[0], Integer.parseInt(args[1]));
         } catch (IOException e) {
             System.out.println("Unable to create instance of CachingDownloader: " + e.getMessage());
