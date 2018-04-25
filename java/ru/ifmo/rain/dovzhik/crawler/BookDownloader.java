@@ -37,7 +37,7 @@ public class BookDownloader {
         try (final Crawler crawler = new WebCrawler(downloader, 16, 16, 40)) {
             crawler.download("https://e.lanbook.com/books", 30);
             try (final BufferedWriter out = new BufferedWriter(Files.newBufferedWriter(Paths.get("books.txt")))){
-                books.stream().sorted().forEach(book -> {
+                books.forEach(book -> {
                     try {
                         out.write(book + System.lineSeparator());
                     } catch (IOException e) {
