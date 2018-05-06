@@ -9,11 +9,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
@@ -56,7 +55,7 @@ public class BaseTest {
         }
     }
 
-    public void parallelCommands(final int threads, final List<Command> commands) {
+    public <E extends Exception> void parallelCommands(final int threads, final List<Command<E>> commands) {
         final ExecutorService executor = Executors.newFixedThreadPool(threads);
         try {
             for (final Future<Void> future : executor.invokeAll(commands)) {
@@ -68,8 +67,8 @@ public class BaseTest {
         }
     }
 
-    public void parallel(final int threads, final Command command) {
-        parallelCommands(threads, Stream.generate(() -> command).limit(threads).collect(Collectors.toList()));
+    public <E extends Exception> void parallel(final int threads, final Command<E> command) {
+        parallelCommands(threads, Collections.nCopies(threads, command));
     }
 
     protected void checkConstructor(final String description, final Class<?> token, final Class<?>... params) {
@@ -80,17 +79,17 @@ public class BaseTest {
         }
     }
 
-    public interface Command extends Callable<Void> {
+    public interface Command<E extends Exception> extends Callable<Void> {
         @Override
-        default Void call() throws Exception {
+        default Void call() throws E {
             run();
             return null;
         }
 
-        void run() throws Exception;
+        void run() throws E;
     }
 
-    public interface ConsumerCommand<T> {
-        void run(T value) throws Throwable;
+    public interface ConsumerCommand<T, E extends Exception> {
+        void run(T value) throws E;
     }
 }

@@ -14,7 +14,6 @@ import java.io.IOException;
 public class CrawlerHardTest extends CrawlerEasyTest {
     @Test
     public void test10_singleConnectionPerHost() throws IOException {
-        //System.setProperty(CUT_PROPERTY, "ru.ifmo.ctddev.kgeorgiy.crawler.WebCrawler");
         test("http://www.ifmo.ru", 2, Integer.MAX_VALUE, Integer.MAX_VALUE, 1, 10, 10);
     }
 
