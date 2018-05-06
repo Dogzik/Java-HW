@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
@@ -25,11 +25,16 @@ public class WebCrawler implements Crawler {
 
     private final ExecutorService downloadersPool;
     private final ExecutorService extractorsPool;
-    private Map<String, HostData> hosts;
+    private ConcurrentMap<String, HostData> hosts;
 
     private class HostData {
-        final Queue<Runnable> waiting = new ArrayDeque<>();
-        int cnt = 0;
+        final Queue<Runnable> waiting;
+        int cnt;
+
+        HostData() {
+            waiting = new ArrayDeque<>();
+            cnt = 0;
+        }
     }
 
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
@@ -56,7 +61,7 @@ public class WebCrawler implements Crawler {
         this(16);
     }
 
-    private void extractLinks(final Document page, final int depth, final Set<String> good, final Map<String, IOException> bad,
+    private void extractLinks(final Document page, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
                               final Phaser sync, final Set<String> used) {
         try {
             page.extractLinks()
@@ -72,7 +77,7 @@ public class WebCrawler implements Crawler {
         }
     }
 
-    private void downloadAndExtractLinks(final String url, final int depth, final Set<String> good, final Map<String, IOException> bad,
+    private void downloadAndExtractLinks(final String url, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
                                          final Phaser sync, final Set<String> used) {
         try {
             final String host = URLUtils.getHost(url);
@@ -120,7 +125,7 @@ public class WebCrawler implements Crawler {
     @Override
     public Result download(String url, int depth) {
         final Set<String> good = ConcurrentHashMap.newKeySet();
-        final Map<String, IOException> bad = new ConcurrentHashMap<>();
+        final ConcurrentMap<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> used = ConcurrentHashMap.newKeySet();
         final Phaser sync = new Phaser(2);
         used.add(url);
