@@ -49,18 +49,6 @@ public class WebCrawler implements Crawler {
         this(new CachingDownloader(), downloaders, extractors, perHost);
     }
 
-    public WebCrawler(int downloaders, int extractors) throws IOException {
-        this(downloaders, extractors, 20);
-    }
-
-    public WebCrawler(int downloaders) throws IOException {
-        this(downloaders, 16);
-    }
-
-    public WebCrawler() throws IOException {
-        this(16);
-    }
-
     private void extractLinks(final Document page, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
                               final Phaser sync, final Set<String> used) {
         try {
@@ -140,6 +128,18 @@ public class WebCrawler implements Crawler {
         extractorsPool.shutdownNow();
     }
 
+    private static int getDownloaders(final int[] bounds) {
+        return (bounds.length > 1) ? bounds[0] : 16;
+    }
+
+    private static int getExtractors(final int[] bounds) {
+        return (bounds.length > 2) ? bounds[2] : 16;
+    }
+
+    private static int getPerHost(final int[] bounds) {
+        return (bounds.length > 3) ? bounds[2] : 20;
+    }
+
     public static void main(String[] args) {
         if (args == null || args.length < 2 || args.length > 5) {
             System.out.println("From 2 to 5 arguments expected");
@@ -151,7 +151,6 @@ public class WebCrawler implements Crawler {
             }
         }
         int[] bounds = new int[args.length - 2];
-
         try {
             for (int i = 2; i < args.length; i++) {
                 bounds[i - 2] = Integer.parseInt(args[i]);
@@ -160,10 +159,7 @@ public class WebCrawler implements Crawler {
             System.out.println("The integer numbers expected in the bounds arguments: " + e.getMessage());
             return;
         }
-        try (WebCrawler crawler = (bounds.length == 3) ? new WebCrawler(bounds[0], bounds[1], bounds[2])
-                : (bounds.length == 2) ? new WebCrawler(bounds[0], bounds[1])
-                : (bounds.length == 1) ? new WebCrawler(bounds[0])
-                : new WebCrawler()) {
+        try (WebCrawler crawler = new WebCrawler(getDownloaders(bounds), getExtractors(bounds), getPerHost(bounds))) {
             crawler.download(args[0], Integer.parseInt(args[1]));
         } catch (IOException e) {
             System.out.println("Unable to create instance of CachingDownloader: " + e.getMessage());
