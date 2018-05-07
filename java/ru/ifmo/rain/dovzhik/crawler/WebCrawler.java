@@ -35,6 +35,24 @@ public class WebCrawler implements Crawler {
             waiting = new ArrayDeque<>();
             cnt = 0;
         }
+
+        private synchronized void addTask(Runnable task) {
+            if (cnt < perHost) {
+                ++cnt;
+                downloadersPool.submit(task);
+            } else {
+                waiting.add(task);
+            }
+        }
+
+        private synchronized void nextTask() {
+            final Runnable other = waiting.poll();
+            if (other != null) {
+                downloadersPool.submit(other);
+            } else {
+                --cnt;
+            }
+        }
     }
 
     public WebCrawler(Downloader downloader, int downloaders, int extractors, int perHost) {
@@ -52,26 +70,23 @@ public class WebCrawler implements Crawler {
     private void extractLinks(final Document page, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
                               final Phaser sync, final Set<String> used) {
         try {
-            page.extractLinks()
-                    .forEach(link -> {
-                        if (used.add(link)) {
-                            sync.register();
-                            downloadersPool.submit(() -> downloadAndExtractLinks(link, depth, good, bad, sync, used));
-                        }
-                    });
+            page.extractLinks().stream()
+                    .filter(used::add)
+                    .forEach(link -> addToDownload(link, depth, good, bad, sync, used));
         } catch (IOException ignored) {
         } finally {
             sync.arrive();
         }
     }
 
-    private void downloadAndExtractLinks(final String url, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
-                                         final Phaser sync, final Set<String> used) {
+    private void addToDownload(final String url, final int depth, final Set<String> good, final ConcurrentMap<String, IOException> bad,
+                               final Phaser sync, final Set<String> used) {
         try {
             final String host = URLUtils.getHost(url);
-            hosts.computeIfAbsent(host, s -> new HostData());
-            HostData data = hosts.get(host);
-            final Runnable task = () -> {
+            final HostData data = hosts.computeIfAbsent(host, s -> new HostData());
+
+            sync.register();
+            data.addTask(() -> {
                 try {
                     final Document page = downloader.download(url);
                     good.add(url);
@@ -82,31 +97,12 @@ public class WebCrawler implements Crawler {
                 } catch (IOException e) {
                     bad.put(url, e);
                 } finally {
-                    synchronized (data) {
-                        final Runnable other = data.waiting.poll();
-                        if (other != null) {
-                            sync.register();
-                            downloadersPool.submit(other);
-                        } else {
-                            --data.cnt;
-                        }
-                    }
                     sync.arrive();
+                    data.nextTask();
                 }
-            };
-            synchronized (data) {
-                if (data.cnt < perHost) {
-                    ++data.cnt;
-                    sync.register();
-                    downloadersPool.submit(task);
-                } else {
-                    data.waiting.add(task);
-                }
-            }
+            });
         } catch (MalformedURLException e) {
             bad.put(url, e);
-        } finally {
-            sync.arrive();
         }
     }
 
@@ -115,9 +111,9 @@ public class WebCrawler implements Crawler {
         final Set<String> good = ConcurrentHashMap.newKeySet();
         final ConcurrentMap<String, IOException> bad = new ConcurrentHashMap<>();
         final Set<String> used = ConcurrentHashMap.newKeySet();
-        final Phaser sync = new Phaser(2);
+        final Phaser sync = new Phaser(1);
         used.add(url);
-        downloadAndExtractLinks(url, depth, good, bad, sync, used);
+        addToDownload(url, depth, good, bad, sync, used);
         sync.arriveAndAwaitAdvance();
         return new Result(new ArrayList<>(good), bad);
     }
