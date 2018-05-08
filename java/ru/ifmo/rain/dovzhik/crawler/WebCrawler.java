@@ -25,7 +25,7 @@ public class WebCrawler implements Crawler {
 
     private final ExecutorService downloadersPool;
     private final ExecutorService extractorsPool;
-    private ConcurrentMap<String, HostData> hosts;
+    private final ConcurrentMap<String, HostData> hosts;
 
     private class HostData {
         final Queue<Runnable> waiting;
