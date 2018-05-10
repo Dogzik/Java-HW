@@ -1,7 +1,6 @@
 package ru.ifmo.rain.dovzhik.hello;
 
 import info.kgeorgiy.java.advanced.hello.HelloClient;
-import ru.ifmo.rain.dovzhik.concurrent.ConcurrentUtils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -11,8 +10,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class HelloUDPClient implements HelloClient {
     @Override
@@ -25,17 +25,21 @@ public class HelloUDPClient implements HelloClient {
             return;
         }
         final SocketAddress dst = new InetSocketAddress(add, port);
-        final List<Thread> workers = new ArrayList<>(threads);
+        final ExecutorService workers = Executors.newFixedThreadPool(threads);
         for (int i = 0; i < threads; ++i) {
             final int id = i;
-            ConcurrentUtils.addAndStart(workers, new Thread(() -> sendAndReceive(dst, prefix, requests, id)));
+            workers.submit(() -> sendAndReceive(dst, prefix, requests, id));
         }
-        ConcurrentUtils.joinThreadsUninterruptedly(workers);
+        workers.shutdown();
+        try {
+            workers.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+        } catch (InterruptedException ignored) {
+        }
     }
 
-    private static void sendAndReceive(final SocketAddress dst, final String prefix, int cnt, final int id) {
+    private static void sendAndReceive(final SocketAddress dst, final String prefix, final int cnt, final int id) {
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(500);
+            socket.setSoTimeout(1000);
             final int inBuffSize = socket.getReceiveBufferSize();
             final int outBuffSize = socket.getSendBufferSize();
             for (int num = 0; num < cnt; ++num) {
@@ -49,7 +53,7 @@ public class HelloUDPClient implements HelloClient {
                         final DatagramPacket respond = MsgUtils.makeMsgToReceive(inBuffSize);
                         socket.receive(respond);
                         final String respondText = MsgUtils.getMsgText(respond);
-                        if (respondText.contains(requestText)) {
+                        if ((respondText.length() != requestText.length()) && respondText.contains(requestText)) {
                             received = true;
                             System.out.println("\nRespond received:\n" + respondText);
                         }
