@@ -56,7 +56,7 @@ public class HelloClientTest extends BaseTest {
     private void test(final int requests, final int treads, final double p) throws SocketException {
         final int port = HelloClientTest.port++;
         final AtomicInteger[] expected;
-        try (DatagramSocket socket = new DatagramSocket(port)) {
+        try (final DatagramSocket socket = new DatagramSocket(port)) {
             expected = Util.server(PREFIX, treads, p, socket);
             final HelloClient client = createCUT();
             client.run("localhost", port, PREFIX, treads, requests);
