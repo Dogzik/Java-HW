@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class HelloUDPServer implements HelloServer {
@@ -16,13 +18,13 @@ public class HelloUDPServer implements HelloServer {
     private ExecutorService listener;
     private boolean closed;
     private int inBuffSize;
-    private int outBuffSize;
+    private final int POOL_SIZE = (int) 1e4;
 
     public HelloUDPServer() {
         socket = null;
         workers = null;
         closed = true;
-        inBuffSize = outBuffSize = 0;
+        inBuffSize = 0;
     }
 
     @Override
@@ -30,13 +32,14 @@ public class HelloUDPServer implements HelloServer {
         try {
             socket = new DatagramSocket(port);
             inBuffSize = socket.getReceiveBufferSize();
-            outBuffSize = socket.getSendBufferSize();
         } catch (SocketException e) {
             System.err.println("Unable to create socket bounded to port №" + port);
             return;
         }
         listener = Executors.newSingleThreadExecutor();
-        workers = Executors.newFixedThreadPool(threads);
+        workers = new ThreadPoolExecutor(threads, threads,
+                1, TimeUnit.MINUTES,
+                new ArrayBlockingQueue<>(POOL_SIZE), new ThreadPoolExecutor.DiscardPolicy());
         closed = false;
         listener.submit(this::receiveAndRespond);
     }
@@ -58,7 +61,7 @@ public class HelloUDPServer implements HelloServer {
     private void sendResponse(final DatagramPacket msg) {
         final String msgText = MsgUtils.getMsgText(msg);
         try {
-            final DatagramPacket respond = MsgUtils.makeMsgToSend(msg.getSocketAddress(), outBuffSize);
+            final DatagramPacket respond = MsgUtils.makeMsgToSend(msg.getSocketAddress(), 0);
             MsgUtils.setMsgText(respond, "Hello, " + msgText);
             socket.send(respond);
         } catch (IOException e) {
@@ -75,7 +78,7 @@ public class HelloUDPServer implements HelloServer {
         listener.shutdownNow();
         workers.shutdownNow();
         try {
-            workers.awaitTermination(1, TimeUnit.SECONDS);
+            workers.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
         }
     }

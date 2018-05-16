@@ -40,9 +40,8 @@ public class HelloUDPClient implements HelloClient {
     private static void sendAndReceive(final SocketAddress dst, final String prefix, final int cnt, final int id) {
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(400);
-            final int outBuffSize = socket.getSendBufferSize();
             final DatagramPacket respond = MsgUtils.makeMsgToReceive(socket.getReceiveBufferSize());
-            final DatagramPacket request = MsgUtils.makeMsgToSend(dst, outBuffSize);
+            final DatagramPacket request = MsgUtils.makeMsgToSend(dst, 0);
             for (int num = 0; num < cnt; ++num) {
                 boolean received = false;
                 while (!received) {
