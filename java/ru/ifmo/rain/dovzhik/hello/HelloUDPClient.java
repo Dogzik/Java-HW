@@ -32,25 +32,25 @@ public class HelloUDPClient implements HelloClient {
         }
         workers.shutdown();
         try {
-            workers.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            workers.awaitTermination(2 * threads * requests, TimeUnit.MINUTES);
         } catch (InterruptedException ignored) {
         }
     }
 
     private static void sendAndReceive(final SocketAddress dst, final String prefix, final int cnt, final int id) {
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(1000);
-            final int inBuffSize = socket.getReceiveBufferSize();
+            socket.setSoTimeout(400);
             final int outBuffSize = socket.getSendBufferSize();
+            final DatagramPacket respond = MsgUtils.makeMsgToReceive(socket.getReceiveBufferSize());
+            final DatagramPacket request = MsgUtils.makeMsgToSend(dst, outBuffSize);
             for (int num = 0; num < cnt; ++num) {
                 boolean received = false;
                 while (!received) {
                     try {
                         final String requestText = makeRequestText(prefix, id, num);
-                        final DatagramPacket request = MsgUtils.makeMsgToSend(dst, requestText, outBuffSize);
+                        MsgUtils.setMsgText(request, requestText);
                         socket.send(request);
                         System.out.println("\nRequest sent:\n" + requestText);
-                        final DatagramPacket respond = MsgUtils.makeMsgToReceive(inBuffSize);
                         socket.receive(respond);
                         final String respondText = MsgUtils.getMsgText(respond);
                         if ((respondText.length() != requestText.length()) && respondText.contains(requestText)) {
