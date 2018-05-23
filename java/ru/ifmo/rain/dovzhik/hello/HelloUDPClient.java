@@ -13,6 +13,8 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class HelloUDPClient implements HelloClient {
     @Override
@@ -26,13 +28,11 @@ public class HelloUDPClient implements HelloClient {
         }
         final SocketAddress dst = new InetSocketAddress(add, port);
         final ExecutorService workers = Executors.newFixedThreadPool(threads);
-        for (int i = 0; i < threads; ++i) {
-            final int id = i;
-            workers.submit(() -> sendAndReceive(dst, prefix, requests, id));
-        }
+        IntStream.range(0, threads)
+                .forEach(id -> workers.submit(() ->sendAndReceive(dst, prefix, requests, id)));
         workers.shutdown();
         try {
-            workers.awaitTermination(2 * threads * requests, TimeUnit.MINUTES);
+            workers.awaitTermination(threads * requests, TimeUnit.MINUTES);
         } catch (InterruptedException ignored) {
         }
     }
@@ -43,18 +43,17 @@ public class HelloUDPClient implements HelloClient {
             final DatagramPacket respond = MsgUtils.makeMsgToReceive(socket.getReceiveBufferSize());
             final DatagramPacket request = MsgUtils.makeMsgToSend(dst, 0);
             for (int num = 0; num < cnt; ++num) {
-                boolean received = false;
-                while (!received) {
+                final String requestText = makeRequestText(prefix, id, num);
+                while (!socket.isClosed() || Thread.currentThread().isInterrupted()) {
                     try {
-                        final String requestText = makeRequestText(prefix, id, num);
                         MsgUtils.setMsgText(request, requestText);
                         socket.send(request);
                         System.out.println("\nRequest sent:\n" + requestText);
                         socket.receive(respond);
                         final String respondText = MsgUtils.getMsgText(respond);
-                        if ((respondText.length() != requestText.length()) && respondText.contains(requestText)) {
-                            received = true;
+                        if (check(requestText, respondText)) {
                             System.out.println("\nRespond received:\n" + respondText);
+                            break;
                         }
                     } catch (IOException e) {
                         System.err.println("Error occurred during processing request: " + e.getMessage());
@@ -64,6 +63,12 @@ public class HelloUDPClient implements HelloClient {
         } catch (SocketException e) {
             System.err.println("Unable to create socket to server: " + dst.toString());
         }
+    }
+
+    private static boolean check(final String request, final String response) {
+        return  response.length() != request.length()
+                && (response.endsWith(request) || response.contains(request + " "));
+        //return response.matches(".*" + Pattern.quote(request) + "(|\\p{javaWhitespace}.*)");
     }
 
     private static String makeRequestText(final String prefix, final int thread, final int num) {

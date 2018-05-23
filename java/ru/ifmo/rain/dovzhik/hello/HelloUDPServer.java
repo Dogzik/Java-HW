@@ -18,7 +18,7 @@ public class HelloUDPServer implements HelloServer {
     private ExecutorService listener;
     private boolean closed;
     private int inBuffSize;
-    private final int POOL_SIZE = (int) 1e4;
+    private final int POOL_SIZE = 100_000;
 
     public HelloUDPServer() {
         socket = null;
@@ -45,7 +45,7 @@ public class HelloUDPServer implements HelloServer {
     }
 
     private void receiveAndRespond() {
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
             try {
                 final DatagramPacket msg = MsgUtils.makeMsgToReceive(inBuffSize);
                 socket.receive(msg);
