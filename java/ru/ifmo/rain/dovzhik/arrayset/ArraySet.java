@@ -153,11 +153,7 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
     public NavigableSet<T> subSet(T fromElement, boolean fromInclusive, T toElement, boolean toInclusive) {
         int l = fromInclusive ? ceilingInd(fromElement) : higherInd(fromElement);
         int r = toInclusive ? floorInd(toElement) : lowerInd(toElement);
-        if (l == -1 || r == -1 || l > r) {
-            return Collections.emptyNavigableSet();
-        } else {
-            return new ArraySet<>(data.subList(l, r + 1), comparator);
-        }
+        return new ArraySet<>((l == -1 || r == -1 || l > r ? Collections.emptyList() : data.subList(l, r + 1)), comparator);
     }
 
     @Override
