@@ -174,6 +174,9 @@ public class ArraySet<T> extends AbstractSet<T> implements NavigableSet<T> {
 
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
+        if (comparator.compare(fromElement, toElement) > 0) {
+            throw new IllegalArgumentException("left border less than right border");
+        }
         return subSet(fromElement, true, toElement, false);
     }
 
