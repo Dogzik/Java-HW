@@ -44,7 +44,7 @@ public class HelloUDPClient implements HelloClient {
             final DatagramPacket request = MsgUtils.makeMsgToSend(dst, 0);
             for (int num = 0; num < cnt; ++num) {
                 final String requestText = makeRequestText(prefix, id, num);
-                while (!socket.isClosed() || Thread.currentThread().isInterrupted()) {
+                while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
                     try {
                         MsgUtils.setMsgText(request, requestText);
                         socket.send(request);
